@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>검암역 로열파크씨티 푸르지오 - 청구서 관리</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--primary:#1a56db;--primary-light:#e8effd;--accent:#059669;--accent-light:#d1fae5;--warning:#d97706;--warning-light:#fef3c7;--danger:#dc2626;--bg:#f0f2f5;--card:#fff;--text:#1e293b;--text-sub:#64748b;--border:#e2e8f0;--shadow:0 1px 3px rgba(0,0,0,.08);--shadow-lg:0 4px 12px rgba(0,0,0,.1);--radius:12px}
+body{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:260px;background:linear-gradient(135deg,#1e3a5f 0%,#1a2744 100%);color:#fff;padding:24px 0;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;transition:transform .3s}
+.sidebar-header{padding:0 20px 20px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar-header h2{font-size:15px;font-weight:700;line-height:1.5}
+.month-selector{margin-top:12px;display:flex;gap:6px}
+.month-selector select,.month-selector button{padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-size:13px;cursor:pointer}
+.month-selector button{background:#3b82f6;border-color:#3b82f6;font-weight:600}
+.month-selector button:hover{background:#2563eb}
+.nav{padding:12px 0}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;font-size:14px;color:rgba(255,255,255,.7);transition:all .2s;border-left:3px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:rgba(255,255,255,.12);color:#fff;border-left-color:#60a5fa;font-weight:600}
+.nav-icon{width:20px;text-align:center;font-size:16px}
+.data-actions{padding:12px 20px;border-top:1px solid rgba(255,255,255,.1);margin-top:auto}
+.data-actions button{width:100%;padding:8px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;margin-bottom:6px}
+.btn-export{background:#10b981;color:#fff}
+.btn-import{background:#6366f1;color:#fff}
+.btn-delete{background:#ef4444;color:#fff}
+.main{margin-left:260px;padding:24px 32px;flex:1;max-width:1200px}
+.page{display:none}.page.active{display:block}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px;justify-content:space-between}
+.card-body{padding:20px}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px}
+.summary-card{background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);border-left:4px solid var(--primary)}
+.summary-card.green{border-left-color:var(--accent)}.summary-card.orange{border-left-color:var(--warning)}.summary-card.red{border-left-color:var(--danger)}
+.summary-card .label{font-size:13px;color:var(--text-sub);margin-bottom:4px}
+.summary-card .value{font-size:24px;font-weight:800}
+.summary-card .sub{font-size:12px;color:var(--text-sub);margin-top:4px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8fafc;padding:10px 12px;text-align:left;font-weight:600;color:var(--text-sub);border-bottom:2px solid var(--border);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--border)}
+tr:hover td{background:#f8fafc}
+.text-right{text-align:right}.text-center{text-align:center}
+.total-row td{font-weight:700;background:#f0f7ff !important;border-top:2px solid var(--primary)}
+.subtotal-row td{font-weight:600;background:#fafafa !important}
+.num{font-variant-numeric:tabular-nums}
+.tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600}
+.tag-blue{background:var(--primary-light);color:var(--primary)}.tag-green{background:var(--accent-light);color:var(--accent)}.tag-orange{background:var(--warning-light);color:var(--warning)}
+.tabs{display:flex;gap:4px;margin-bottom:20px;background:#f1f5f9;border-radius:10px;padding:4px;flex-wrap:wrap}
+.tab-btn{padding:8px 16px;border:none;background:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-sub);transition:all .2s}
+.tab-btn.active{background:#fff;color:var(--primary);box-shadow:var(--shadow);font-weight:600}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.bar-chart{display:flex;flex-direction:column;gap:12px}
+.bar-row{display:flex;align-items:center;gap:12px}
+.bar-label{width:80px;font-size:13px;font-weight:500;text-align:right;flex-shrink:0}
+.bar-track{flex:1;background:#f1f5f9;border-radius:6px;height:28px;overflow:hidden}
+.bar-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:10px;font-size:12px;font-weight:600;color:#fff;transition:width .8s ease;min-width:fit-content}
+.bar-fill.blue{background:linear-gradient(90deg,#3b82f6,#1d4ed8)}.bar-fill.green{background:linear-gradient(90deg,#10b981,#059669)}.bar-fill.orange{background:linear-gradient(90deg,#f59e0b,#d97706)}
+.bar-amount{width:100px;text-align:right;font-size:13px;font-weight:600;flex-shrink:0}
+
+/* Form styles */
+.form-section{margin-bottom:24px}
+.form-section h3{font-size:15px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--primary);color:var(--primary)}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:12px;font-weight:600;color:var(--text-sub)}
+.form-group input,.form-group select{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;transition:border-color .2s}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+.form-group input[type="number"]{text-align:right}
+.form-inline{display:flex;gap:8px;align-items:end}
+.form-inline .form-group{flex:1}
+
+/* Dynamic table input */
+.input-table input{width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;text-align:right}
+.input-table input:focus{outline:none;border-color:var(--primary)}
+.input-table input.text-input{text-align:left}
+.btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:#1e40af}
+.btn-success{background:var(--accent);color:#fff}.btn-success:hover{background:#047857}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{background:#b91c1c}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-row{display:flex;gap:8px;margin-top:12px}
+.add-row-btn{display:flex;align-items:center;gap:4px;padding:6px 12px;background:#f1f5f9;border:1px dashed var(--border);border-radius:8px;cursor:pointer;color:var(--text-sub);font-size:13px;margin-top:8px;transition:all .2s}
+.add-row-btn:hover{background:var(--primary-light);border-color:var(--primary);color:var(--primary)}
+
+.month-list{padding:12px 20px}
+.month-list-title{font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;margin-bottom:8px;font-weight:600}
+.month-item{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-radius:6px;font-size:13px;color:rgba(255,255,255,.7);cursor:pointer;margin-bottom:2px}
+.month-item:hover{background:rgba(255,255,255,.08)}
+.month-item.current{background:rgba(96,165,250,.2);color:#93c5fd;font-weight:600}
+
+.hamburger{display:none;position:fixed;top:16px;left:16px;z-index:200;background:var(--primary);color:#fff;border:none;width:40px;height:40px;border-radius:10px;cursor:pointer;font-size:20px}
+@media(max-width:768px){
+.hamburger{display:flex;align-items:center;justify-content:center}
+.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}
+.main{margin-left:0;padding:16px;padding-top:64px}
+.summary-grid{grid-template-columns:repeat(2,1fr)}
+.form-grid{grid-template-columns:1fr}
+}
+
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-sub)}
+.empty-state h3{font-size:18px;margin-bottom:8px;color:var(--text)}
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:10px;color:#fff;font-size:14px;font-weight:600;z-index:1000;transform:translateY(100px);opacity:0;transition:all .3s}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{background:#059669}.toast.error{background:#dc2626}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;padding:24px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto}
+.modal h3{margin-bottom:16px}
+.modal .btn-row{justify-content:flex-end}
+
+/* Print overlay */
+#printOverlay{display:none;position:fixed;inset:0;z-index:9999;background:#fff;overflow:auto;padding:0}
+#printOverlay.show{display:block}
+#printOverlay .print-toolbar{position:sticky;top:0;z-index:10;background:#1e3a5f;color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between}
+#printOverlay .print-toolbar button{padding:8px 20px;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600}
+#printOverlay .print-close{background:rgba(255,255,255,.2);color:#fff}
+#printOverlay .print-go{background:#3b82f6;color:#fff}
+#printContent{max-width:210mm;margin:0 auto;padding:20mm 15mm;font-size:11px;color:#000;line-height:1.5}
+#printContent h1{font-size:18px;text-align:center;margin-bottom:4px}
+#printContent .print-sub{text-align:center;font-size:12px;color:#555;margin-bottom:20px}
+#printContent .section{margin-bottom:24px;page-break-inside:avoid}
+#printContent .section-title{font-size:14px;font-weight:700;border-bottom:2px solid #1e3a5f;padding-bottom:4px;margin-bottom:10px;color:#1e3a5f}
+#printContent table{width:100%;border-collapse:collapse;font-size:10px;margin-bottom:8px}
+#printContent th{background:#f0f4f8;padding:6px 8px;border:1px solid #ccc;font-weight:600;text-align:left;white-space:nowrap}
+#printContent td{padding:5px 8px;border:1px solid #ddd}
+#printContent .tr{text-align:right}
+#printContent .tc{text-align:center}
+#printContent .bold{font-weight:700}
+#printContent .total-r td{font-weight:700;background:#e8effd;border-top:2px solid #1e3a5f}
+#printContent .sub-r td{font-weight:600;background:#f5f5f5}
+#printContent .grand-r td{font-weight:700;background:#fef2f2;font-size:12px}
+#printContent .page-break{page-break-before:always}
+
+@media print{
+  body>*:not(#printOverlay){display:none !important}
+  #printOverlay{display:block !important;position:static}
+  #printOverlay .print-toolbar{display:none !important}
+  #printContent{padding:10mm;max-width:none}
+  @page{size:A4;margin:10mm}
+}
+</style>
+</head>
+<body>
+
+<button class="hamburger" onclick="document.querySelector('.sidebar').classList.toggle('open')">&#9776;</button>
+
+<div class="layout">
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h2>검암역 로열파크씨티<br>푸르지오</h2>
+    <div class="month-selector">
+      <select id="yearSelect"></select>
+      <select id="monthSelect"></select>
+      <button onclick="loadMonth()">이동</button>
+    </div>
+  </div>
+  <div class="nav">
+    <div class="nav-item active" data-page="dashboard"><span class="nav-icon">&#128200;</span>대시보드</div>
+    <div class="nav-item" data-page="invoice"><span class="nav-icon">&#128196;</span>청구서</div>
+    <div class="nav-item" data-page="input-basic"><span class="nav-icon">&#9999;</span>기본정보 입력</div>
+    <div class="nav-item" data-page="input-vehicle"><span class="nav-icon">&#128663;</span>운행내역 입력</div>
+    <div class="nav-item" data-page="input-fuel"><span class="nav-icon">&#9981;</span>주유내역 입력</div>
+    <div class="nav-item" data-page="input-urea"><span class="nav-icon">&#128167;</span>요소수 입력</div>
+    <div class="nav-item" data-page="input-wash"><span class="nav-icon">&#128703;</span>세차 입력</div>
+    <div class="nav-item" data-page="input-maint"><span class="nav-icon">&#128295;</span>정비 입력</div>
+    <div class="nav-item" data-page="input-logbook"><span class="nav-icon">&#128214;</span>운행일지 입력</div>
+    <div class="nav-item" data-page="import-logbook"><span class="nav-icon">&#128260;</span>운행일지 가져오기</div>
+    <div style="border-top:1px solid rgba(255,255,255,.1);margin:8px 0;"></div>
+    <div class="nav-item" data-page="pdf-export"><span class="nav-icon">&#128438;</span>PDF 변환</div>
+  </div>
+  <div id="monthList" class="month-list"></div>
+  <div class="data-actions">
+    <button class="btn-export" onclick="exportData()">&#128190; JSON 내보내기</button>
+    <button class="btn-import" onclick="document.getElementById('importFile').click()">&#128194; JSON 가져오기</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    <button class="btn-delete" onclick="deleteMonth()">&#128465; 현재 월 삭제</button>
+  </div>
+</nav>
+
+<div class="main">
+
+<!-- ==================== 대시보드 ==================== -->
+<div class="page active" id="dashboard">
+  <h1 style="font-size:24px;margin-bottom:20px;" id="dashTitle">운영 대시보드</h1>
+  <div id="dashContent"></div>
+</div>
+
+<!-- ==================== 청구서 ==================== -->
+<div class="page" id="invoice">
+  <h1 style="font-size:24px;margin-bottom:20px;" id="invoiceTitle">청구서</h1>
+  <div id="invoiceContent"></div>
+</div>
+
+<!-- ==================== 기본정보 입력 ==================== -->
+<div class="page" id="input-basic">
+  <h1 style="font-size:24px;margin-bottom:20px;">기본정보 입력</h1>
+  <div class="card">
+    <div class="card-header">&#9999; 사업비 정보</div>
+    <div class="card-body">
+      <div class="form-section">
+        <h3>인건비</h3>
+        <div class="form-grid">
+          <div class="form-group"><label>1인당 월급 (원)</label><input type="text" id="wage" value="4,000,000" data-fmt="money"></div>
+          <div class="form-group"><label>인원수</label><input type="number" id="headcount" value="6"></div>
+          <div class="form-group"><label>4대보험 1인당 (원)</label><input type="text" id="insurance" value="341,040" data-fmt="money"></div>
+        </div>
+      </div>
+      <div class="form-section">
+        <h3>관리비</h3>
+        <div class="form-grid">
+          <div class="form-group"><label>시스템 운영 관리비 (원)</label><input type="text" id="systemCost" value="3,500,000" data-fmt="money"></div>
+          <div class="form-group"><label>리스크 관리비 (원)</label><input type="text" id="riskCost" value="1,500,000" data-fmt="money"></div>
+          <div class="form-group"><label>위탁 운영관리비 비율 (%)</label><input type="number" id="mgmtRate" value="7" step="0.1"></div>
+        </div>
+      </div>
+      <div class="form-section">
+        <h3>차량/승무원 정보</h3>
+        <div id="vehicleInfoTable"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveBasicInfo()">&#128190; 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 운행내역 입력 ==================== -->
+<div class="page" id="input-vehicle">
+  <h1 style="font-size:24px;margin-bottom:20px;">운행내역 입력</h1>
+  <div class="card">
+    <div class="card-header">&#128663; 차량별 운행 현황<span style="font-size:12px;color:var(--text-sub);font-weight:400;">월간 합계 기준</span></div>
+    <div class="card-body">
+      <div class="table-wrap" id="vehicleInputTable"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveVehicleData()">&#128190; 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 주유내역 입력 ==================== -->
+<div class="page" id="input-fuel">
+  <h1 style="font-size:24px;margin-bottom:20px;">주유내역 입력</h1>
+  <div class="card">
+    <div class="card-header">&#9981; 일별 주유 기록
+      <button class="btn btn-sm btn-primary" onclick="addFuelRow()">+ 행 추가</button>
+    </div>
+    <div class="card-body">
+      <div class="table-wrap" id="fuelInputTable"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveFuelData()">&#128190; 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 요소수 입력 ==================== -->
+<div class="page" id="input-urea">
+  <h1 style="font-size:24px;margin-bottom:20px;">요소수 입력</h1>
+  <div class="card">
+    <div class="card-header">&#128167; 요소수 현황</div>
+    <div class="card-body">
+      <div class="form-grid" style="margin-bottom:20px;">
+        <div class="form-group"><label>전월 재고량 (L)</label><input type="number" id="ureaCarryover" value="0"></div>
+        <div class="form-group"><label>구입량 (L)</label><input type="number" id="ureaPurchase" value="0"></div>
+        <div class="form-group"><label>단가 (원/10L)</label><input type="text" id="ureaPrice" value="9,000" data-fmt="money"></div>
+      </div>
+      <h3 style="font-size:14px;margin-bottom:12px;">입출 내역</h3>
+      <div class="table-wrap" id="ureaInputTable"></div>
+      <button class="add-row-btn" onclick="addUreaRow()">+ 내역 추가</button>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveUreaData()">&#128190; 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 세차 입력 ==================== -->
+<div class="page" id="input-wash">
+  <h1 style="font-size:24px;margin-bottom:20px;">세차 기록 입력</h1>
+  <div class="card">
+    <div class="card-header">&#128703; 세차 내역
+      <button class="btn btn-sm btn-primary" onclick="addWashRow()">+ 행 추가</button>
+    </div>
+    <div class="card-body">
+      <div class="table-wrap" id="washInputTable"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveWashData()">&#128190; 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 정비 입력 ==================== -->
+<div class="page" id="input-maint">
+  <h1 style="font-size:24px;margin-bottom:20px;">정비 기록 입력</h1>
+  <div class="card">
+    <div class="card-header">&#128295; 고속주행 톨게이트
+      <button class="btn btn-sm btn-primary" onclick="addTollRow()">+ 행 추가</button>
+    </div>
+    <div class="card-body">
+      <div class="table-wrap" id="tollInputTable"></div>
+      <div class="btn-row"><button class="btn btn-primary" onclick="saveMaintData()">&#128190; 저장</button></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">&#128295; 차량 정비
+      <button class="btn btn-sm btn-primary" onclick="addRepairRow()">+ 행 추가</button>
+    </div>
+    <div class="card-body">
+      <div class="table-wrap" id="repairInputTable"></div>
+      <div class="btn-row"><button class="btn btn-primary" onclick="saveMaintData()">&#128190; 저장</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 운행일지 입력 ==================== -->
+<div class="page" id="input-logbook">
+  <h1 style="font-size:24px;margin-bottom:20px;">운행일지 입력</h1>
+  <div class="card">
+    <div class="card-header">
+      <span>&#128214; 차량 선택</span>
+    </div>
+    <div class="card-body">
+      <div class="tabs" id="logbookTabs"></div>
+      <div id="logbookPanels"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 운행일지 가져오기 ==================== -->
+<div class="page" id="import-logbook">
+  <h1 style="font-size:24px;margin-bottom:20px;">운행일지 가져오기</h1>
+  <div class="card">
+    <div class="card-header"><span>&#128260; 모바일 운행일지 앱에서 가져오기</span></div>
+    <div class="card-body">
+      <p style="margin-bottom:16px;color:var(--text-sub);font-size:14px;line-height:1.8;">
+        기사분들이 모바일 운행일지 앱에서 내보낸 JSON 파일을 불러옵니다.<br>
+        가져온 데이터는 해당 월의 <b>운행일지</b>와 <b>주유내역</b>에 자동 반영됩니다.
+      </p>
+      <div style="display:flex;gap:12px;margin-bottom:20px;">
+        <button class="btn btn-primary" onclick="document.getElementById('logImportFile').click()" style="padding:12px 24px;font-size:15px;">
+          &#128194; JSON 파일 선택
+        </button>
+        <input type="file" id="logImportFile" accept=".json" style="display:none" onchange="importLogbook(event)">
+      </div>
+      <div id="importPreview" style="display:none;">
+        <div style="background:#f0f7ff;border-radius:10px;padding:16px;margin-bottom:16px;">
+          <h3 style="font-size:15px;margin-bottom:10px;color:var(--primary);">&#128203; 가져오기 미리보기</h3>
+          <div id="importPreviewContent"></div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-success" onclick="confirmImportLogbook()" style="padding:10px 20px;">확인 - 가져오기 실행</button>
+          <button class="btn btn-danger" onclick="cancelImportLogbook()" style="padding:10px 20px;">취소</button>
+        </div>
+      </div>
+      <div id="importResult" style="display:none;margin-top:16px;"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">&#128221; 사용 방법</div>
+    <div class="card-body" style="font-size:13px;color:var(--text-sub);line-height:2;">
+      <b>1.</b> 기사님이 모바일 운행일지 앱에서 매일 운행 기록을 입력합니다.<br>
+      <b>2.</b> 월말에 운행일지 앱 → 내보내기 → <b>"청구서 앱용 파일 내보내기"</b> 클릭<br>
+      <b>3.</b> 다운로드된 JSON 파일을 이 페이지에서 불러옵니다.<br>
+      <b>4.</b> 미리보기 확인 후 "가져오기 실행" → 운행일지 & 주유내역 자동 반영<br>
+      <b>5.</b> 대시보드와 청구서에서 자동 집계됩니다.
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PDF 변환 ==================== -->
+<div class="page" id="pdf-export">
+  <h1 style="font-size:24px;margin-bottom:20px;">PDF 변환 (보고용 자료)</h1>
+  <div class="card">
+    <div class="card-header">&#128438; 포함할 섹션 선택</div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:20px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px;border:1px solid var(--border);border-radius:8px;">
+          <input type="checkbox" id="pdf-invoice" checked> <span>청구서</span></label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px;border:1px solid var(--border);border-radius:8px;">
+          <input type="checkbox" id="pdf-complex" checked> <span>단지별 청구서</span></label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px;border:1px solid var(--border);border-radius:8px;">
+          <input type="checkbox" id="pdf-operation" checked> <span>운영비 내역</span></label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px;border:1px solid var(--border);border-radius:8px;">
+          <input type="checkbox" id="pdf-vehicle" checked> <span>차량 운행 내역</span></label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px;border:1px solid var(--border);border-radius:8px;">
+          <input type="checkbox" id="pdf-fuel" checked> <span>주유 내역</span></label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px;border:1px solid var(--border);border-radius:8px;">
+          <input type="checkbox" id="pdf-urea"> <span>요소수 현황</span></label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px;border:1px solid var(--border);border-radius:8px;">
+          <input type="checkbox" id="pdf-wash"> <span>세차 기록</span></label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px;border:1px solid var(--border);border-radius:8px;">
+          <input type="checkbox" id="pdf-maint" checked> <span>정비 기록</span></label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:10px;border:1px solid var(--border);border-radius:8px;">
+          <input type="checkbox" id="pdf-logbook"> <span>운행일지 (전 차량)</span></label>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="generatePDF()" style="padding:12px 32px;font-size:15px;">&#128438; PDF 미리보기 / 인쇄</button>
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:var(--text-sub);">* 인쇄 대화상자에서 "PDF로 저장"을 선택하면 PDF 파일로 저장됩니다.</div>
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<div id="printOverlay">
+  <div class="print-toolbar">
+    <span>PDF 미리보기</span>
+    <div style="display:flex;gap:8px;">
+      <button class="print-go" onclick="window.print()">&#128438; 인쇄 / PDF 저장</button>
+      <button class="print-close" onclick="closePrint()">&#10005; 닫기</button>
+    </div>
+  </div>
+  <div id="printContent"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+// ===== STATE =====
+const STORAGE_KEY = 'royalpark_billing';
+let currentYear, currentMonth;
+let allData = {};
+
+function getKey() { return `${currentYear}-${String(currentMonth).padStart(2,'0')}`; }
+function getData() { return allData[getKey()] || null; }
+function setData(d) { allData[getKey()] = d; localStorage.setItem(STORAGE_KEY, JSON.stringify(allData)); }
+
+function getDefaultVehicles() {
+  return [
+    { id:'7336', complex:'2단지1호', driver:'김동복', year:'2023' },
+    { id:'5578', complex:'2단지2호', driver:'채재영', year:'2023' },
+    { id:'7376', complex:'2단지3호', driver:'강희선', year:'2023' },
+    { id:'7315', complex:'1단지1호', driver:'송진희', year:'2023' },
+    { id:'7327', complex:'1단지2호', driver:'함동남', year:'2023' },
+    { id:'7399', complex:'1단지3호', driver:'김영대', year:'2020' },
+  ];
+}
+
+function getDefaultData() {
+  return {
+    basic: { wage:4000000, headcount:6, insurance:341040, systemCost:3500000, riskCost:1500000, mgmtRate:7, vehicles: getDefaultVehicles() },
+    vehicle: getDefaultVehicles().map(v => ({ ...v, efficiency:0, distance:0, fuelAmount:0, fuelCost:0, urea:0, washCost:0 })),
+    fuel: [],
+    urea: { carryover:0, purchase:0, price:9000, records:[] },
+    wash: [],
+    maint: { toll:[], repair:[] },
+    logbook: {}
+  };
+}
+
+// ===== 운행일지앱 차량정보 동기화 =====
+function syncVehiclesToLogApp(vehs) {
+  try {
+    const shared = vehs.map(v => ({
+      id: v.id,
+      complex: v.complex,
+      driver: v.driver,
+      year: v.year
+    }));
+    localStorage.setItem('rpc_shared_vehicles', JSON.stringify(shared));
+  } catch(e) {}
+}
+
+// ===== INIT =====
+function init() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw) allData = JSON.parse(raw);
+  const now = new Date();
+  currentYear = now.getFullYear();
+  currentMonth = now.getMonth() + 1;
+
+  // If we have data, jump to most recent
+  const keys = Object.keys(allData).sort();
+  if (keys.length > 0) {
+    const last = keys[keys.length - 1].split('-');
+    currentYear = parseInt(last[0]);
+    currentMonth = parseInt(last[1]);
+  }
+
+  buildSelectors();
+  updateMonthList();
+  // 앱 시작 시 현재 월 차량정보를 운행일지앱과 동기화
+  const curData = getData();
+  if (curData && curData.basic && curData.basic.vehicles) {
+    syncVehiclesToLogApp(curData.basic.vehicles);
+  }
+  renderAll();
+}
+
+function buildSelectors() {
+  const ys = document.getElementById('yearSelect');
+  const ms = document.getElementById('monthSelect');
+  ys.innerHTML = '';
+  for (let y = 2023; y <= 2030; y++) {
+    ys.innerHTML += `<option value="${y}" ${y===currentYear?'selected':''}>${y}년</option>`;
+  }
+  ms.innerHTML = '';
+  for (let m = 1; m <= 12; m++) {
+    ms.innerHTML += `<option value="${m}" ${m===currentMonth?'selected':''}>${m}월</option>`;
+  }
+}
+
+function loadMonth() {
+  currentYear = parseInt(document.getElementById('yearSelect').value);
+  currentMonth = parseInt(document.getElementById('monthSelect').value);
+  updateMonthList();
+  renderAll();
+}
+
+function updateMonthList() {
+  const el = document.getElementById('monthList');
+  const keys = Object.keys(allData).sort().reverse();
+  if (keys.length === 0) { el.innerHTML = '<div style="padding:0 20px;font-size:12px;color:rgba(255,255,255,.4);">저장된 데이터 없음</div>'; return; }
+  let html = '<div class="month-list-title">저장된 월</div>';
+  keys.forEach(k => {
+    const [y,m] = k.split('-');
+    const isCurrent = k === getKey();
+    html += `<div class="month-item ${isCurrent?'current':''}" onclick="jumpTo('${k}')">${y}년 ${parseInt(m)}월${isCurrent?' &#9664;':''}</div>`;
+  });
+  el.innerHTML = html;
+  buildSelectors();
+}
+
+function jumpTo(key) {
+  const [y,m] = key.split('-');
+  currentYear = parseInt(y);
+  currentMonth = parseInt(m);
+  buildSelectors();
+  updateMonthList();
+  renderAll();
+}
+
+// ===== FORMAT =====
+function fmt(n) { return n == null ? '' : Number(n).toLocaleString('ko-KR'); }
+function fmtWon(n) { return fmt(n) + '원'; }
+
+// ===== TOAST =====
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ===== RENDER ALL =====
+function renderAll() {
+  const d = getData();
+  if (d) calcVehicleFromSources(d);
+  if (d) setData(d);
+  renderDashboard(d);
+  renderInvoice(d);
+  renderBasicForm(d);
+  renderVehicleForm(d);
+  renderFuelForm(d);
+  renderUreaForm(d);
+  renderWashForm(d);
+  renderMaintForm(d);
+  renderLogbookForm(d);
+  document.getElementById('dashTitle').textContent = `${currentYear}년 ${currentMonth}월 운영 대시보드`;
+  document.getElementById('invoiceTitle').textContent = `검암역 로열파크씨티 푸르지오 - ${currentMonth}월 청구서`;
+}
+
+// ===== CALCULATE =====
+function calcInvoice(d) {
+  if (!d) return null;
+  const b = d.basic;
+  const laborCost = b.wage * b.headcount;
+  const insuranceCost = b.insurance * b.headcount;
+  const subtotal = laborCost + insuranceCost + b.systemCost + b.riskCost;
+  const mgmtFee = subtotal * (b.mgmtRate / 100);
+  const bizTotal = Math.floor((subtotal + mgmtFee) / 100000) * 100000;
+
+  const veh = d.vehicle || [];
+  const fuel = d.fuel || [];
+  const is1 = v => (v.complex||'').includes('1단지');
+  // 주유비: d.fuel(상세 주유기록)이 있으면 그 합계 사용, 없으면 d.vehicle의 fuelCost 합계 사용
+  const fuelFromDetail = fuel.reduce((s,r) => s + (Number(r.cost)||0), 0);
+  const fuelFromVehicle = veh.reduce((s,v) => s + (Number(v.fuelCost)||0), 0);
+  const fuelTotal = fuelFromDetail > 0 ? fuelFromDetail : fuelFromVehicle;
+  const ureaTotal = (d.urea?.purchase || 0) * ((d.urea?.price||9000)/10);
+
+  const washTotal = (d.wash||[]).reduce((s,w) => s + (Number(w.amount)||0), 0);
+  const tollTotal = (d.maint?.toll||[]).reduce((s,t) => s + (Number(t.amount)||0), 0);
+  const repairTotal = (d.maint?.repair||[]).reduce((s,r) => s + (Number(r.amount)||0), 0);
+  const maintTotal = tollTotal + repairTotal;
+  const generalTotal = 0;
+  const opTotal = fuelTotal + ureaTotal + washTotal + maintTotal + generalTotal;
+
+  const total = bizTotal + opTotal;
+  const rounded = Math.floor(total / 10) * 10;
+  const vat = Math.floor(rounded * 0.1);
+  const grand = rounded + vat;
+
+  // Per complex
+  const v1 = veh.filter(is1), v2 = veh.filter(v => !is1(v));
+  // 단지별 주유비도 d.fuel 상세기록 우선
+  const fuelDetail1 = fuel.filter(r=>(r.complex||'').includes('1단지')).reduce((s,r)=>s+(Number(r.cost)||0),0);
+  const fuelDetail2 = fuel.filter(r=>(r.complex||'').includes('2단지')).reduce((s,r)=>s+(Number(r.cost)||0),0);
+  const fuel1 = fuelFromDetail > 0 ? fuelDetail1 : v1.reduce((s,v)=>s+(Number(v.fuelCost)||0),0);
+  const fuel2 = fuelFromDetail > 0 ? fuelDetail2 : v2.reduce((s,v)=>s+(Number(v.fuelCost)||0),0);
+  const wash1 = (d.wash||[]).filter(w=>(w.complex||'').includes('1단지')).reduce((s,w)=>s+(Number(w.amount)||0),0);
+  const wash2 = (d.wash||[]).filter(w=>(w.complex||'').includes('2단지')).reduce((s,w)=>s+(Number(w.amount)||0),0);
+  const toll1 = (d.maint?.toll||[]).filter(t=>(t.complex||'').includes('1단지')).reduce((s,t)=>s+(Number(t.amount)||0),0);
+  const toll2 = (d.maint?.toll||[]).filter(t=>(t.complex||'').includes('2단지')).reduce((s,t)=>s+(Number(t.amount)||0),0);
+  const repair1 = (d.maint?.repair||[]).filter(r=>(r.complex||'').includes('1단지')).reduce((s,r)=>s+(Number(r.amount)||0),0);
+  const repair2 = (d.maint?.repair||[]).filter(r=>(r.complex||'').includes('2단지')).reduce((s,r)=>s+(Number(r.amount)||0),0);
+
+  const halfBiz = Math.floor(bizTotal / 2 / 500000) * 500000;
+  const op1 = fuel1 + wash1 + toll1 + repair1;
+  const op2 = fuel2 + wash2 + toll2 + repair2;
+  const total1 = Math.floor((halfBiz + op1)/10)*10;
+  const total2 = Math.floor((halfBiz + op2)/10)*10;
+  const vat1 = Math.floor(total1 * 0.1);
+  const vat2 = Math.floor(total2 * 0.1);
+
+  return {
+    laborCost, insuranceCost, subtotal, mgmtFee, bizTotal,
+    fuelTotal, ureaTotal, washTotal, tollTotal, repairTotal, maintTotal, opTotal,
+    total: rounded, vat, grand,
+    complex1: { biz:halfBiz, op:op1, fuel:fuel1, wash:wash1, maint:toll1+repair1, total:total1, vat:vat1, grand:total1+vat1 },
+    complex2: { biz:halfBiz, op:op2, fuel:fuel2, wash:wash2, maint:toll2+repair2, total:total2, vat:vat2, grand:total2+vat2 }
+  };
+}
+
+// ===== DASHBOARD =====
+function renderDashboard(d) {
+  const el = document.getElementById('dashContent');
+  if (!d) { el.innerHTML = '<div class="empty-state"><h3>데이터가 없습니다</h3><p>"기본정보 입력" 메뉴에서 데이터를 입력하세요.<br>또는 이전 월 데이터를 복사할 수 있습니다.</p><br><button class="btn btn-primary" onclick="createNewMonth()">새 월 데이터 생성</button></div>'; return; }
+
+  const c = calcInvoice(d);
+  if (!c) return;
+  const veh = d.vehicle || [];
+  const totalDist = veh.reduce((s,v)=>s+(Number(v.distance)||0),0);
+  const totalFuelAmt = veh.reduce((s,v)=>s+(Number(v.fuelAmount)||0),0);
+  const avgEff = totalFuelAmt > 0 ? (totalDist / totalFuelAmt).toFixed(2) : '0';
+
+  let html = `
+  <div class="summary-grid">
+    <div class="summary-card red"><div class="label">총 청구금액 (VAT 포함)</div><div class="value">${fmtWon(c.grand)}</div><div class="sub">사업비 + 운영비 + 부가세</div></div>
+    <div class="summary-card"><div class="label">사업비</div><div class="value">${fmtWon(c.bizTotal)}</div></div>
+    <div class="summary-card green"><div class="label">운영비</div><div class="value">${fmtWon(c.opTotal)}</div></div>
+    <div class="summary-card orange"><div class="label">부가세 (10%)</div><div class="value">${fmtWon(c.vat)}</div></div>
+  </div>
+
+  <div class="card"><div class="card-header">&#128202; 운영비 구성</div><div class="card-body"><div class="bar-chart">
+    ${makeBar('주유비', c.fuelTotal, c.opTotal, 'blue')}
+    ${makeBar('정비비', c.maintTotal, c.opTotal, 'orange')}
+    ${makeBar('세차비', c.washTotal, c.opTotal, 'green')}
+    ${makeBar('요소수', c.ureaTotal, c.opTotal, 'blue')}
+  </div></div></div>
+
+  <div class="card"><div class="card-header">&#128663; 차량별 운행 요약</div><div class="card-body"><div class="table-wrap"><table>
+    <thead><tr><th>단지</th><th>차량</th><th>승무사원</th><th class="text-right">연비</th><th class="text-right">주행(km)</th><th class="text-right">주유액(원)</th><th class="text-right">세차(원)</th></tr></thead>
+    <tbody>${[...veh].sort((a,b)=>((a.complex||'').includes('1단지')?0:1)-((b.complex||'').includes('1단지')?0:1)).map(v => `<tr>
+      <td><span class="tag ${(v.complex||'').includes('1단지')?'tag-blue':'tag-green'}">${v.complex}</span></td>
+      <td>${v.id}</td><td>${v.driver}</td>
+      <td class="text-right num">${v.efficiency||'-'}</td>
+      <td class="text-right num">${fmt(v.distance)}</td>
+      <td class="text-right num">${fmt(v.fuelCost)}</td>
+      <td class="text-right num">${fmt(v.washCost)}</td>
+    </tr>`).join('')}
+    <tr class="total-row"><td colspan="3">합계</td><td class="text-right num">${avgEff}</td><td class="text-right num">${fmt(totalDist)}</td><td class="text-right num">${fmt(c.fuelTotal)}</td><td class="text-right num">${fmt(c.washTotal)}</td></tr>
+    </tbody></table></div></div></div>
+
+  <div class="card"><div class="card-header">&#127970; 단지별 청구 비교</div><div class="card-body">
+    <div class="summary-grid" style="grid-template-columns:1fr 1fr;">
+      <div style="text-align:center;padding:16px"><div style="font-size:14px;color:var(--text-sub);margin-bottom:8px">1단지</div><div style="font-size:28px;font-weight:800;color:var(--primary)">${fmtWon(c.complex1.grand)}</div><div style="margin-top:8px;font-size:13px;color:var(--text-sub)">사업비 ${fmt(c.complex1.biz)} + 운영비 ${fmt(c.complex1.op)} + VAT</div></div>
+      <div style="text-align:center;padding:16px"><div style="font-size:14px;color:var(--text-sub);margin-bottom:8px">2단지</div><div style="font-size:28px;font-weight:800;color:var(--accent)">${fmtWon(c.complex2.grand)}</div><div style="margin-top:8px;font-size:13px;color:var(--text-sub)">사업비 ${fmt(c.complex2.biz)} + 운영비 ${fmt(c.complex2.op)} + VAT</div></div>
+    </div>
+  </div></div>`;
+  el.innerHTML = html;
+}
+
+function makeBar(label, value, total, color) {
+  const pct = total > 0 ? ((value/total)*100).toFixed(1) : 0;
+  return `<div class="bar-row"><div class="bar-label">${label}</div><div class="bar-track"><div class="bar-fill ${color}" style="width:${Math.max(pct,2)}%">${pct}%</div></div><div class="bar-amount num">${fmtWon(value)}</div></div>`;
+}
+
+// ===== INVOICE =====
+function renderInvoice(d) {
+  const el = document.getElementById('invoiceContent');
+  if (!d) { el.innerHTML = '<div class="empty-state"><h3>데이터를 먼저 입력하세요</h3></div>'; return; }
+  const c = calcInvoice(d);
+  const b = d.basic;
+  el.innerHTML = `<div class="card"><div class="card-header">&#128196; 청구 내역</div><div class="card-body"><div class="table-wrap"><table>
+    <thead><tr><th>구분</th><th>품명</th><th>내역</th><th class="text-right">단가</th><th class="text-center">수</th><th class="text-right">합계</th><th>비고</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="4" style="font-weight:600;vertical-align:top">사업비</td><td>인건비</td><td>오전/오후 근무</td><td class="text-right num">${fmt(b.wage)}</td><td class="text-center">${b.headcount}</td><td class="text-right num">${fmt(c.laborCost)}</td><td></td></tr>
+      <tr><td>4대 보험</td><td>국민연금, 건강보험, 고용보험, 산재보험</td><td class="text-right num">${fmt(b.insurance)}</td><td class="text-center">${b.headcount}</td><td class="text-right num">${fmt(c.insuranceCost)}</td><td></td></tr>
+      <tr><td>시스템 운영 관리</td><td>셔틀 관제 및 상황실 운영</td><td class="text-right num">${fmt(b.systemCost)}</td><td class="text-center">1</td><td class="text-right num">${fmt(b.systemCost)}</td><td></td></tr>
+      <tr><td>리스크 관리비</td><td>운전자 보험 가입 및 관리팀장 운영</td><td class="text-right num">${fmt(b.riskCost)}</td><td class="text-center">1</td><td class="text-right num">${fmt(b.riskCost)}</td><td></td></tr>
+      <tr class="subtotal-row"><td colspan="5">소계</td><td class="text-right num">${fmt(c.subtotal)}</td><td></td></tr>
+      <tr><td colspan="2">위탁 운영관리비</td><td>소계의 ${b.mgmtRate}%</td><td></td><td></td><td class="text-right num">${fmt(Math.round(c.mgmtFee))}</td><td></td></tr>
+      <tr class="subtotal-row" style="background:#e8effd !important"><td colspan="2" style="font-weight:700">중계(1)</td><td colspan="2" style="font-weight:700">사업비 합계</td><td></td><td class="text-right num" style="font-weight:700;font-size:15px">${fmt(c.bizTotal)}</td><td>10만원 단위 절사</td></tr>
+      <tr><td rowspan="5" style="font-weight:600;vertical-align:top">운영비</td><td>주유비</td><td>단지별 주유</td><td class="text-right num">${fmt(c.fuelTotal)}</td><td class="text-center">1</td><td class="text-right num">${fmt(c.fuelTotal)}</td><td></td></tr>
+      <tr><td>요소수</td><td>요소수 주입</td><td class="text-right num">${fmt(c.ureaTotal)}</td><td class="text-center">1</td><td class="text-right num">${fmt(c.ureaTotal)}</td><td></td></tr>
+      <tr><td>세차</td><td>차량별 세차</td><td class="text-right num">${fmt(c.washTotal)}</td><td class="text-center">1</td><td class="text-right num">${fmt(c.washTotal)}</td><td></td></tr>
+      <tr><td>점검 및 유지비</td><td>차량 정비 및 고속주행</td><td class="text-right num">${fmt(c.maintTotal)}</td><td class="text-center">1</td><td class="text-right num">${fmt(c.maintTotal)}</td><td></td></tr>
+      <tr><td>일반 관리</td><td>물품 구입 등</td><td class="text-right num">0</td><td class="text-center">1</td><td class="text-right num">0</td><td></td></tr>
+      <tr class="subtotal-row" style="background:#d1fae5 !important"><td colspan="2" style="font-weight:700">중계(2)</td><td colspan="2" style="font-weight:700">운영비 합계</td><td></td><td class="text-right num" style="font-weight:700;font-size:15px">${fmt(c.opTotal)}</td><td>발생 시 청구</td></tr>
+      <tr class="subtotal-row"><td colspan="2" style="font-weight:700">합계</td><td colspan="2">사업비 + 운영비</td><td></td><td class="text-right num" style="font-weight:700">${fmt(c.total)}</td><td>10원 단위 절사</td></tr>
+      <tr><td colspan="2">부가세</td><td colspan="2">합계의 10%</td><td></td><td class="text-right num">${fmt(c.vat)}</td><td></td></tr>
+      <tr class="total-row"><td colspan="2" style="font-size:16px">총계</td><td colspan="2" style="font-size:14px">청구비용(합계+부가세)</td><td></td><td class="text-right num" style="font-size:18px;color:var(--danger)">${fmt(c.grand)}</td><td>VAT 포함</td></tr>
+    </tbody></table></div></div></div>`;
+}
+
+// ===== FORM: BASIC =====
+function renderBasicForm(d) {
+  const b = d ? d.basic : getDefaultData().basic;
+  document.getElementById('wage').value = fmtMoney(b.wage);
+  document.getElementById('headcount').value = b.headcount;
+  document.getElementById('insurance').value = fmtMoney(b.insurance);
+  document.getElementById('systemCost').value = fmtMoney(b.systemCost);
+  document.getElementById('riskCost').value = fmtMoney(b.riskCost);
+  document.getElementById('mgmtRate').value = b.mgmtRate;
+
+  const vehs = b.vehicles || getDefaultVehicles();
+  let html = '<table class="input-table"><thead><tr><th>단지/호차</th><th>차량번호</th><th>승무사원</th><th>연식</th></tr></thead><tbody>';
+  vehs.forEach((v,i) => {
+    html += `<tr>
+      <td><input class="text-input" data-vi="${i}" data-f="complex" value="${v.complex}"></td>
+      <td><input class="text-input" data-vi="${i}" data-f="id" value="${v.id}"></td>
+      <td><input class="text-input" data-vi="${i}" data-f="driver" value="${v.driver}"></td>
+      <td><input class="text-input" data-vi="${i}" data-f="year" value="${v.year||''}"></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('vehicleInfoTable').innerHTML = html;
+}
+
+function saveBasicInfo() {
+  let d = getData() || getDefaultData();
+  d.basic.wage = parseMoney(document.getElementById('wage').value);
+  d.basic.headcount = Number(document.getElementById('headcount').value);
+  d.basic.insurance = parseMoney(document.getElementById('insurance').value);
+  d.basic.systemCost = parseMoney(document.getElementById('systemCost').value);
+  d.basic.riskCost = parseMoney(document.getElementById('riskCost').value);
+  d.basic.mgmtRate = Number(document.getElementById('mgmtRate').value);
+
+  const rows = document.querySelectorAll('#vehicleInfoTable input');
+  const vehs = d.basic.vehicles || getDefaultVehicles();
+  rows.forEach(inp => {
+    const i = Number(inp.dataset.vi);
+    vehs[i][inp.dataset.f] = inp.value;
+  });
+  d.basic.vehicles = vehs;
+
+  // Sync vehicle list to vehicle data
+  d.vehicle = vehs.map((v,i) => {
+    const existing = (d.vehicle||[])[i] || {};
+    return { ...v, efficiency:existing.efficiency||0, distance:existing.distance||0, fuelAmount:existing.fuelAmount||0, fuelCost:existing.fuelCost||0, urea:existing.urea||0, washCost:existing.washCost||0 };
+  });
+
+  setData(d);
+  syncVehiclesToLogApp(vehs);
+  updateMonthList();
+  renderAll();
+  showToast('기본정보가 저장되었습니다');
+}
+
+// ===== FORM: VEHICLE =====
+function calcVehicleFromSources(d) {
+  // 운행일지, 주유내역, 요소수, 세차 데이터에서 차량별 운행내역 자동 계산
+  if (!d) return;
+  const logbook = d.logbook || {};
+  const fuelRecs = d.fuel || [];
+  const ureaRecs = d.urea?.records || [];
+  const washRecs = d.wash || [];
+  const vehs = d.vehicle || [];
+  const monthPrefix = `${currentYear}-${String(currentMonth).padStart(2,'0')}`;
+
+  vehs.forEach(v => {
+    const logs = (logbook[v.id] || []).filter(r => r.date && r.date.startsWith(monthPrefix));
+    // 주유내역에서 해당 차량 기록
+    const vFuel = fuelRecs.filter(r => String(r.vehicle) === String(v.id));
+    const hasFuelDetail = vFuel.length > 0;
+
+    if (logs.length > 0) {
+      // 주행거리: 운행일지에서
+      v.distance = logs.reduce((s,r) => s + (Number(r.distance)||0), 0);
+    }
+
+    if (hasFuelDetail) {
+      // 주유량/주유액: 주유내역 입력 우선
+      v.fuelAmount = Math.round(vFuel.reduce((s,r) => s + (Number(r.amount)||0), 0) * 1000) / 1000;
+      v.fuelCost = vFuel.reduce((s,r) => s + (Number(r.cost)||0), 0);
+    } else if (logs.length > 0) {
+      // 주유내역 없으면 운행일지에서
+      const fa = logs.reduce((s,r) => s + (r.fuelAmount !== '' ? Number(r.fuelAmount)||0 : 0), 0);
+      v.fuelAmount = Math.round(fa * 1000) / 1000;
+      v.fuelCost = logs.reduce((s,r) => s + (r.fuelCost !== '' ? Number(r.fuelCost)||0 : 0), 0);
+    }
+
+    // 연비 계산
+    v.efficiency = v.fuelAmount > 0 ? Math.round((v.distance / v.fuelAmount) * 100) / 100 : 0;
+
+    // 요소수 합계
+    v.urea = ureaRecs.filter(r => String(r.vehicle) === String(v.id)).reduce((s,r) => s + (Number(r.amount)||0), 0);
+    // 세차 합계
+    v.washCost = washRecs.filter(r => String(r.vehicle) === String(v.id)).reduce((s,r) => s + (Number(r.amount)||0), 0);
+  });
+  d.vehicle = vehs;
+}
+
+function renderVehicleForm(d) {
+  const vehs = d ? (d.vehicle || []) : getDefaultData().vehicle;
+  const logbook = d ? (d.logbook || {}) : {};
+  const hasAnyLog = Object.values(logbook).some(arr => arr && arr.length > 0);
+
+  let html = '<table class="input-table"><thead><tr><th>단지</th><th>차량</th><th>사원</th><th>연비(km/L)</th><th>주행(km)</th><th>주유량(L)</th><th>주유액(원)</th><th>요소수(L)</th><th>세차(원)</th><th>소스</th></tr></thead><tbody>';
+  vehs.forEach((v,i) => {
+    const logs = (logbook[v.id] || []).filter(r => r.date && r.date.startsWith(`${currentYear}-${String(currentMonth).padStart(2,'0')}`));
+    const fromLog = logs.length > 0;
+    const ro = fromLog ? 'readonly tabindex="-1" style="background:#f1f5f9;color:var(--text-sub)"' : '';
+    const src = fromLog ? '<span class="tag tag-green">자동</span>' : '<span class="tag tag-orange">수동</span>';
+    html += `<tr>
+      <td style="white-space:nowrap;font-size:12px">${v.complex}</td>
+      <td style="white-space:nowrap">${v.id}</td>
+      <td style="white-space:nowrap">${v.driver}</td>
+      <td><input type="number" step="0.01" data-vi="${i}" data-f="efficiency" value="${v.efficiency||''}" ${ro}></td>
+      <td><input type="text" data-vi="${i}" data-f="distance" data-fmt="money" value="${fmtMoney(v.distance||'')}" ${ro}></td>
+      <td><input type="number" step="0.001" data-vi="${i}" data-f="fuelAmount" value="${v.fuelAmount||''}" ${ro}></td>
+      <td><input type="text" data-vi="${i}" data-f="fuelCost" data-fmt="money" value="${fmtMoney(v.fuelCost||'')}" ${ro}></td>
+      <td><input type="number" data-vi="${i}" data-f="urea" value="${v.urea||''}" readonly tabindex="-1" style="background:#f1f5f9;color:var(--text-sub)"></td>
+      <td><input type="text" data-vi="${i}" data-f="washCost" data-fmt="money" value="${fmtMoney(v.washCost||'')}" readonly tabindex="-1" style="background:#f1f5f9;color:var(--text-sub)"></td>
+      <td class="text-center">${src}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  if (hasAnyLog) html += '<div style="margin-top:8px;font-size:12px;color:var(--text-sub);">* <span class="tag tag-green">자동</span> 항목은 운행일지/요소수/세차 입력에서 자동 계산됩니다. 운행일지가 없는 차량만 수동 입력 가능합니다.</div>';
+  document.getElementById('vehicleInputTable').innerHTML = html;
+}
+
+function saveVehicleData() {
+  let d = getData() || getDefaultData();
+  const vehs = d.vehicle || [];
+  document.querySelectorAll('#vehicleInputTable input').forEach(inp => {
+    const i = Number(inp.dataset.vi);
+    if (vehs[i]) vehs[i][inp.dataset.f] = parseMoney(inp.value);
+  });
+  d.vehicle = vehs;
+  setData(d);
+  renderAll();
+  showToast('운행내역이 저장되었습니다');
+}
+
+// ===== FORM: FUEL =====
+function renderFuelForm(d) {
+  const rows = d ? (d.fuel || []) : [];
+  const vehs = d ? (d.basic?.vehicles || getDefaultVehicles()) : getDefaultVehicles();
+  let html = `<table class="input-table"><thead><tr><th>날짜</th><th>단지</th><th>차량</th><th>단가(원)</th><th>주유량(L)</th><th>주유액(원)</th><th>비고</th><th></th></tr></thead><tbody>`;
+  rows.forEach((r,i) => {
+    html += `<tr>
+      <td><input type="date" data-fi="${i}" data-f="date" value="${r.date||''}" class="text-input"></td>
+      <td><select data-fi="${i}" data-f="complex" style="padding:6px;border:1px solid var(--border);border-radius:6px"><option ${r.complex==='1단지'?'selected':''}>1단지</option><option ${r.complex==='2단지'?'selected':''}>2단지</option></select></td>
+      <td><select data-fi="${i}" data-f="vehicle" style="padding:6px;border:1px solid var(--border);border-radius:6px">${vehs.map(v=>`<option value="${v.id}" ${r.vehicle===v.id?'selected':''}>${v.id}</option>`).join('')}</select></td>
+      <td><input type="text" data-fi="${i}" data-f="unitPrice" data-fmt="money" value="${fmtMoney(r.unitPrice||'')}" onchange="calcFuelCost(${i})"></td>
+      <td><input type="number" step="0.001" data-fi="${i}" data-f="amount" value="${r.amount||''}" onchange="calcFuelCost(${i})"></td>
+      <td><input type="text" data-fi="${i}" data-f="cost" data-fmt="money" value="${fmtMoney(r.cost||'')}" readonly tabindex="-1" style="background:#f1f5f9;color:var(--text-sub)"></td>
+      <td><input class="text-input" data-fi="${i}" data-f="note" value="${r.note||''}"></td>
+      <td><button class="btn btn-sm btn-danger" onclick="removeFuelRow(${i})">X</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  if (rows.length === 0) html = '<div style="text-align:center;padding:20px;color:var(--text-sub)">주유 기록이 없습니다. "행 추가" 버튼을 눌러 입력하세요.</div>';
+  document.getElementById('fuelInputTable').innerHTML = html;
+}
+
+function calcFuelCost(i) {
+  const priceEl = document.querySelector(`input[data-fi="${i}"][data-f="unitPrice"]`);
+  const amtEl = document.querySelector(`input[data-fi="${i}"][data-f="amount"]`);
+  const costEl = document.querySelector(`input[data-fi="${i}"][data-f="cost"]`);
+  if (priceEl && amtEl && costEl) {
+    const price = parseMoney(priceEl.value);
+    const amt = Number(amtEl.value) || 0;
+    costEl.value = fmtMoney(Math.round(price * amt));
+  }
+}
+
+function addFuelRow() {
+  let d = getData() || getDefaultData();
+  if (!d.fuel) d.fuel = [];
+  d.fuel.push({ date:'', complex:'2단지', vehicle:'', unitPrice:0, amount:0, cost:0, note:'' });
+  setData(d);
+  renderFuelForm(d);
+}
+function removeFuelRow(i) {
+  let d = getData(); if(!d) return;
+  d.fuel.splice(i,1);
+  setData(d); renderFuelForm(d);
+}
+function saveFuelData() {
+  let d = getData() || getDefaultData();
+  if (!d.fuel) d.fuel = [];
+  document.querySelectorAll('#fuelInputTable input, #fuelInputTable select').forEach(inp => {
+    const i = Number(inp.dataset.fi); if (isNaN(i) || !d.fuel[i]) return;
+    const f = inp.dataset.f;
+    d.fuel[i][f] = (f==='date'||f==='complex'||f==='vehicle'||f==='note') ? inp.value : parseMoney(inp.value);
+  });
+  d.fuel.forEach(r => { r.cost = Math.round((Number(r.unitPrice)||0) * (Number(r.amount)||0)); });
+  setData(d); renderAll();
+  showToast('주유내역이 저장되었습니다');
+}
+
+// ===== FORM: UREA =====
+function renderUreaForm(d) {
+  const u = d ? (d.urea || { carryover:0, purchase:0, price:9000, records:[] }) : { carryover:0, purchase:0, price:9000, records:[] };
+  document.getElementById('ureaCarryover').value = u.carryover;
+  document.getElementById('ureaPurchase').value = u.purchase;
+  document.getElementById('ureaPrice').value = fmtMoney(u.price);
+  const vehs = d ? (d.basic?.vehicles || getDefaultVehicles()) : getDefaultVehicles();
+  let html = `<table class="input-table"><thead><tr><th>날짜</th><th>차량</th><th>출고량(L)</th><th></th></tr></thead><tbody>`;
+  (u.records||[]).forEach((r,i) => {
+    html += `<tr>
+      <td><input type="date" data-ui="${i}" data-f="date" value="${r.date||''}" class="text-input"></td>
+      <td><select data-ui="${i}" data-f="vehicle" style="padding:6px;border:1px solid var(--border);border-radius:6px">${vehs.map(v=>`<option value="${v.id}" ${r.vehicle===v.id?'selected':''}>${v.id}</option>`).join('')}</select></td>
+      <td><input type="number" data-ui="${i}" data-f="amount" value="${r.amount||10}"></td>
+      <td><button class="btn btn-sm btn-danger" onclick="removeUreaRow(${i})">X</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('ureaInputTable').innerHTML = html;
+}
+function addUreaRow() {
+  let d = getData() || getDefaultData();
+  if(!d.urea) d.urea = { carryover:0, purchase:0, price:9000, records:[] };
+  d.urea.records.push({ date:'', vehicle:'', amount:10 });
+  setData(d); renderUreaForm(d);
+}
+function removeUreaRow(i) {
+  let d = getData(); if(!d) return;
+  d.urea.records.splice(i,1);
+  setData(d); renderUreaForm(d);
+}
+function saveUreaData() {
+  let d = getData() || getDefaultData();
+  d.urea = d.urea || { carryover:0, purchase:0, price:9000, records:[] };
+  d.urea.carryover = Number(document.getElementById('ureaCarryover').value)||0;
+  d.urea.purchase = Number(document.getElementById('ureaPurchase').value)||0;
+  d.urea.price = parseMoney(document.getElementById('ureaPrice').value)||9000;
+  document.querySelectorAll('#ureaInputTable input, #ureaInputTable select').forEach(inp => {
+    const i = Number(inp.dataset.ui); if(isNaN(i)) return;
+    d.urea.records[i][inp.dataset.f] = inp.dataset.f==='amount' ? parseMoney(inp.value) : inp.value;
+  });
+  setData(d); renderAll();
+  showToast('요소수 현황이 저장되었습니다');
+}
+
+// ===== FORM: WASH =====
+function renderWashForm(d) {
+  const rows = d ? (d.wash||[]) : [];
+  const vehs = d ? (d.basic?.vehicles || getDefaultVehicles()) : getDefaultVehicles();
+  let html = `<table class="input-table"><thead><tr><th>날짜</th><th>단지</th><th>차량</th><th>금액(원)</th><th></th></tr></thead><tbody>`;
+  rows.forEach((r,i) => {
+    html += `<tr>
+      <td><input type="date" data-wi="${i}" data-f="date" value="${r.date||''}" class="text-input"></td>
+      <td><select data-wi="${i}" data-f="complex" style="padding:6px;border:1px solid var(--border);border-radius:6px"><option ${r.complex==='1단지'?'selected':''}>1단지</option><option ${r.complex==='2단지'?'selected':''}>2단지</option></select></td>
+      <td><select data-wi="${i}" data-f="vehicle" style="padding:6px;border:1px solid var(--border);border-radius:6px">${vehs.map(v=>`<option value="${v.id}" ${r.vehicle===v.id?'selected':''}>${v.id}</option>`).join('')}</select></td>
+      <td><input type="text" data-wi="${i}" data-f="amount" data-fmt="money" value="${fmtMoney(r.amount||40000)}"></td>
+      <td><button class="btn btn-sm btn-danger" onclick="removeWashRow(${i})">X</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  if (rows.length===0) html = '<div style="text-align:center;padding:20px;color:var(--text-sub)">세차 기록이 없습니다.</div>';
+  document.getElementById('washInputTable').innerHTML = html;
+}
+function addWashRow() {
+  let d = getData()||getDefaultData();
+  if(!d.wash) d.wash=[];
+  d.wash.push({ date:'', complex:'1단지', vehicle:'', amount:40000 });
+  setData(d); renderWashForm(d);
+}
+function removeWashRow(i) { let d=getData(); if(!d) return; d.wash.splice(i,1); setData(d); renderWashForm(d); }
+function saveWashData() {
+  let d=getData()||getDefaultData();
+  if(!d.wash) d.wash=[];
+  document.querySelectorAll('#washInputTable input, #washInputTable select').forEach(inp => {
+    const i = Number(inp.dataset.wi); if(isNaN(i)) return;
+    d.wash[i][inp.dataset.f] = inp.dataset.f==='amount' ? parseMoney(inp.value) : inp.value;
+  });
+  setData(d); renderAll();
+  showToast('세차 기록이 저장되었습니다');
+}
+
+// ===== FORM: MAINT =====
+function renderMaintForm(d) {
+  const maint = d ? (d.maint||{toll:[],repair:[]}) : {toll:[],repair:[]};
+  const vehs = d ? (d.basic?.vehicles||getDefaultVehicles()) : getDefaultVehicles();
+
+  // Toll
+  let html = `<table class="input-table"><thead><tr><th>날짜</th><th>단지</th><th>차량</th><th>금액(원)</th><th>비고</th><th></th></tr></thead><tbody>`;
+  (maint.toll||[]).forEach((r,i) => {
+    html += `<tr>
+      <td><input type="date" data-ti="${i}" data-f="date" value="${r.date||''}" class="text-input"></td>
+      <td><select data-ti="${i}" data-f="complex" style="padding:6px;border:1px solid var(--border);border-radius:6px"><option ${r.complex==='1단지'?'selected':''}>1단지</option><option ${r.complex==='2단지'?'selected':''}>2단지</option></select></td>
+      <td><select data-ti="${i}" data-f="vehicle" style="padding:6px;border:1px solid var(--border);border-radius:6px">${vehs.map(v=>`<option value="${v.id}" ${r.vehicle===v.id?'selected':''}>${v.id}</option>`).join('')}</select></td>
+      <td><input type="text" data-ti="${i}" data-f="amount" data-fmt="money" value="${fmtMoney(r.amount||6400)}"></td>
+      <td><input class="text-input" data-ti="${i}" data-f="note" value="${r.note||''}"></td>
+      <td><button class="btn btn-sm btn-danger" onclick="removeTollRow(${i})">X</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  if((maint.toll||[]).length===0) html = '<div style="text-align:center;padding:20px;color:var(--text-sub)">톨게이트 기록이 없습니다.</div>';
+  document.getElementById('tollInputTable').innerHTML = html;
+
+  // Repair
+  let html2 = `<table class="input-table"><thead><tr><th>날짜</th><th>단지</th><th>차량</th><th>정비내역</th><th>업체</th><th>금액(원)</th><th></th></tr></thead><tbody>`;
+  (maint.repair||[]).forEach((r,i) => {
+    html2 += `<tr>
+      <td><input type="date" data-ri="${i}" data-f="date" value="${r.date||''}" class="text-input"></td>
+      <td><select data-ri="${i}" data-f="complex" style="padding:6px;border:1px solid var(--border);border-radius:6px"><option ${r.complex==='1단지'?'selected':''}>1단지</option><option ${r.complex==='2단지'?'selected':''}>2단지</option></select></td>
+      <td><select data-ri="${i}" data-f="vehicle" style="padding:6px;border:1px solid var(--border);border-radius:6px">${vehs.map(v=>`<option value="${v.id}" ${r.vehicle===v.id?'selected':''}>${v.id}</option>`).join('')}</select></td>
+      <td><input class="text-input" data-ri="${i}" data-f="detail" value="${r.detail||''}"></td>
+      <td><input class="text-input" data-ri="${i}" data-f="vendor" value="${r.vendor||''}"></td>
+      <td><input type="text" data-ri="${i}" data-f="amount" data-fmt="money" value="${fmtMoney(r.amount||0)}"></td>
+      <td><button class="btn btn-sm btn-danger" onclick="removeRepairRow(${i})">X</button></td>
+    </tr>`;
+  });
+  html2 += '</tbody></table>';
+  if((maint.repair||[]).length===0) html2 = '<div style="text-align:center;padding:20px;color:var(--text-sub)">정비 기록이 없습니다.</div>';
+  document.getElementById('repairInputTable').innerHTML = html2;
+}
+
+function addTollRow() {
+  let d=getData()||getDefaultData();
+  if(!d.maint) d.maint={toll:[],repair:[]};
+  d.maint.toll.push({ date:'', complex:'', vehicle:'', amount:6400, note:'진입/진출' });
+  setData(d); renderMaintForm(d);
+}
+function removeTollRow(i) { let d=getData(); if(!d) return; d.maint.toll.splice(i,1); setData(d); renderMaintForm(d); }
+function addRepairRow() {
+  let d=getData()||getDefaultData();
+  if(!d.maint) d.maint={toll:[],repair:[]};
+  d.maint.repair.push({ date:'', complex:'', vehicle:'', detail:'', vendor:'', amount:0 });
+  setData(d); renderMaintForm(d);
+}
+function removeRepairRow(i) { let d=getData(); if(!d) return; d.maint.repair.splice(i,1); setData(d); renderMaintForm(d); }
+
+function saveMaintData() {
+  let d=getData()||getDefaultData();
+  if(!d.maint) d.maint={toll:[],repair:[]};
+  document.querySelectorAll('#tollInputTable input, #tollInputTable select').forEach(inp => {
+    const i = Number(inp.dataset.ti); if(isNaN(i)) return;
+    d.maint.toll[i][inp.dataset.f] = (inp.dataset.f==='amount') ? parseMoney(inp.value) : inp.value;
+  });
+  document.querySelectorAll('#repairInputTable input, #repairInputTable select').forEach(inp => {
+    const i = Number(inp.dataset.ri); if(isNaN(i)) return;
+    d.maint.repair[i][inp.dataset.f] = (inp.dataset.f==='amount') ? parseMoney(inp.value) : inp.value;
+  });
+  setData(d); renderAll();
+  showToast('정비 기록이 저장되었습니다');
+}
+
+// ===== FORM: LOGBOOK =====
+let activeLogVehicle = null;
+
+function renderLogbookForm(d) {
+  const vehs = d ? (d.basic?.vehicles || getDefaultVehicles()) : getDefaultVehicles();
+  const logbook = d ? (d.logbook || {}) : {};
+  if (!activeLogVehicle || !vehs.find(v => v.id === activeLogVehicle)) {
+    activeLogVehicle = vehs.length > 0 ? vehs[0].id : null;
+  }
+
+  // Tabs
+  let tabsHtml = '';
+  vehs.forEach(v => {
+    const isActive = v.id === activeLogVehicle;
+    tabsHtml += `<button class="tab-btn ${isActive?'active':''}" onclick="switchLogVehicle('${v.id}')">${v.complex} (${v.id})</button>`;
+  });
+  document.getElementById('logbookTabs').innerHTML = tabsHtml;
+
+  // Panel for active vehicle
+  if (!activeLogVehicle) {
+    document.getElementById('logbookPanels').innerHTML = '<div class="empty-state">차량 정보가 없습니다.</div>';
+    return;
+  }
+  const veh = vehs.find(v => v.id === activeLogVehicle);
+  const rows = logbook[activeLogVehicle] || [];
+
+  // 주유내역에서 해당 차량의 날짜별 주유 데이터 매핑
+  const fuelRecs = d ? (d.fuel || []) : [];
+  const fuelByDate = {};
+  fuelRecs.filter(r => String(r.vehicle) === String(activeLogVehicle)).forEach(r => {
+    if (!r.date) return;
+    if (!fuelByDate[r.date]) fuelByDate[r.date] = { amount:0, cost:0 };
+    fuelByDate[r.date].amount += Number(r.amount) || 0;
+    fuelByDate[r.date].cost += parseMoney(r.cost);
+  });
+  const hasFuelData = Object.keys(fuelByDate).length > 0;
+
+  let html = `<div class="card" style="box-shadow:none;margin-bottom:0;">
+    <div class="card-header" style="border-top:1px solid var(--border);">
+      <span>${veh.complex} - ${veh.id} (${veh.driver||''} / ${veh.year?veh.year+'년식':''})</span>
+      <button class="btn btn-sm btn-primary" onclick="addLogRow()">+ 행 추가</button>
+    </div>
+    <div class="card-body">
+      ${hasFuelData ? '<div style="margin-bottom:8px;font-size:12px;color:var(--text-sub);">* 주유량/주유액은 주유내역 입력에서 자동 반영됩니다 (<span class="tag tag-green">자동</span>)</div>' : ''}
+      <div class="table-wrap"><table class="input-table">
+        <thead><tr>
+          <th>일자</th><th class="text-center">오전</th><th class="text-center">오후</th>
+          <th class="text-right">출발계기(km)</th><th class="text-right">종료계기(km)</th>
+          <th class="text-right">주행거리(km)</th><th class="text-right">주유량(L)</th>
+          <th class="text-right">주유액(원)</th><th>비고</th><th></th>
+        </tr></thead>
+        <tbody>`;
+
+  // 어떤 날짜의 첫 번째 행(보통 오전)에만 주유 데이터 표시
+  const usedFuelDates = {};
+  rows.forEach((r, i) => {
+    const fMatch = r.date && fuelByDate[r.date] && !usedFuelDates[r.date];
+    const fData = fMatch ? fuelByDate[r.date] : null;
+    if (fMatch) usedFuelDates[r.date] = true;
+
+    const fuelAmt = fData ? fData.amount : (r.fuelAmount || '');
+    const fuelCost = fData ? fData.cost : (r.fuelCost || '');
+    const fuelRo = (hasFuelData && fData) ? 'readonly tabindex="-1" style="background:#f1f5f9;color:var(--text-sub)"' : '';
+
+    html += `<tr>
+      <td><input type="date" data-li="${i}" data-f="date" value="${r.date||''}" class="text-input" style="width:130px"></td>
+      <td class="text-center"><input type="checkbox" data-li="${i}" data-f="am" ${r.am?'checked':''}></td>
+      <td class="text-center"><input type="checkbox" data-li="${i}" data-f="pm" ${r.pm?'checked':''}></td>
+      <td><input type="number" data-li="${i}" data-f="startKm" value="${r.startKm||''}" style="width:90px"></td>
+      <td><input type="number" data-li="${i}" data-f="endKm" value="${r.endKm||''}" style="width:90px" onchange="calcLogDistance(${i})"></td>
+      <td><input type="number" data-li="${i}" data-f="distance" value="${r.distance||''}" style="width:80px" readonly tabindex="-1" style="background:#f8fafc"></td>
+      <td><input type="number" step="0.001" data-li="${i}" data-f="fuelAmount" value="${fuelAmt}" ${fuelRo}></td>
+      <td><input type="text" data-li="${i}" data-f="fuelCost" data-fmt="money" value="${fuelCost ? fmtMoney(fuelCost) : ''}" ${fuelRo}></td>
+      <td><input class="text-input" data-li="${i}" data-f="note" value="${r.note||''}" style="width:100px"></td>
+      <td><button class="btn btn-sm btn-danger" onclick="removeLogRow(${i})">X</button></td>
+    </tr>`;
+  });
+
+  // Summary
+  const totalDist = rows.reduce((s,r) => s + (Number(r.distance)||0), 0);
+  const totalFuelAmt = rows.reduce((s,r) => s + (Number(r.fuelAmount)||0), 0);
+  const totalFuelCost = rows.reduce((s,r) => s + (parseMoney(r.fuelCost)), 0);
+
+  html += `</tbody>
+    <tfoot><tr class="total-row">
+      <td colspan="5" style="text-align:right">합계</td>
+      <td class="text-right num">${fmt(totalDist)}</td>
+      <td class="text-right num">${totalFuelAmt ? totalFuelAmt.toFixed(1) : ''}</td>
+      <td class="text-right num">${fmt(totalFuelCost)}</td>
+      <td colspan="2"></td>
+    </tr></tfoot>
+  </table></div>
+  <div class="btn-row" style="margin-top:16px;">
+    <button class="btn btn-primary" onclick="saveLogbookData()">&#128190; 저장</button>
+    <button class="btn btn-success" onclick="autoFillLogDates()">&#128197; 날짜 자동채우기</button>
+  </div>
+  </div></div>`;
+
+  document.getElementById('logbookPanels').innerHTML = html;
+}
+
+function switchLogVehicle(id) {
+  // Save current before switching
+  saveLogbookSilent();
+  activeLogVehicle = id;
+  renderLogbookForm(getData());
+}
+
+function addLogRow() {
+  let d = getData() || getDefaultData();
+  if (!d.logbook) d.logbook = {};
+  if (!d.logbook[activeLogVehicle]) d.logbook[activeLogVehicle] = [];
+  const rows = d.logbook[activeLogVehicle];
+  // Auto-fill: last endKm becomes new startKm
+  const lastEnd = rows.length > 0 ? (rows[rows.length-1].endKm || '') : '';
+  rows.push({ date:'', am:false, pm:false, startKm:lastEnd, endKm:'', distance:0, fuelAmount:'', fuelCost:'', note:'' });
+  setData(d);
+  renderLogbookForm(d);
+}
+
+function removeLogRow(i) {
+  let d = getData(); if (!d) return;
+  if (!d.logbook || !d.logbook[activeLogVehicle]) return;
+  d.logbook[activeLogVehicle].splice(i, 1);
+  setData(d);
+  renderLogbookForm(d);
+}
+
+function calcLogDistance(i) {
+  const startEl = document.querySelector(`input[data-li="${i}"][data-f="startKm"]`);
+  const endEl = document.querySelector(`input[data-li="${i}"][data-f="endKm"]`);
+  const distEl = document.querySelector(`input[data-li="${i}"][data-f="distance"]`);
+  if (startEl && endEl && distEl) {
+    const s = Number(startEl.value) || 0;
+    const e = Number(endEl.value) || 0;
+    distEl.value = e > s ? e - s : 0;
+  }
+}
+
+function collectLogRows() {
+  const rows = [];
+  const allInputs = document.querySelectorAll('#logbookPanels input[data-li]');
+  const maxI = -1;
+  const map = {};
+  allInputs.forEach(inp => {
+    const i = Number(inp.dataset.li);
+    if (!map[i]) map[i] = {};
+    const f = inp.dataset.f;
+    if (inp.type === 'checkbox') {
+      map[i][f] = inp.checked;
+    } else if (f === 'fuelAmount') {
+      map[i][f] = inp.value !== '' ? Number(inp.value) : '';
+    } else if (['startKm','endKm','distance','fuelCost'].includes(f)) {
+      map[i][f] = inp.value !== '' ? Number(inp.value) : '';
+    } else {
+      map[i][f] = inp.value;
+    }
+  });
+  const indices = Object.keys(map).map(Number).sort((a,b)=>a-b);
+  indices.forEach(i => {
+    const r = map[i];
+    // Recalc distance
+    const s = Number(r.startKm) || 0;
+    const e = Number(r.endKm) || 0;
+    r.distance = e > s ? e - s : (Number(r.distance)||0);
+    rows.push(r);
+  });
+  return rows;
+}
+
+function saveLogbookSilent() {
+  let d = getData();
+  if (!d || !activeLogVehicle) return;
+  if (!d.logbook) d.logbook = {};
+  const panels = document.getElementById('logbookPanels');
+  if (!panels || !panels.querySelector('input[data-li]')) return;
+  d.logbook[activeLogVehicle] = collectLogRows();
+  setData(d);
+}
+
+function saveLogbookData() {
+  let d = getData() || getDefaultData();
+  if (!d.logbook) d.logbook = {};
+  d.logbook[activeLogVehicle] = collectLogRows();
+  setData(d);
+  renderLogbookForm(d);
+  showToast('운행일지가 저장되었습니다');
+}
+
+function autoFillLogDates() {
+  let d = getData() || getDefaultData();
+  if (!d.logbook) d.logbook = {};
+  const rows = d.logbook[activeLogVehicle] || [];
+  if (rows.length > 0) {
+    // Already has rows, don't overwrite
+    showToast('이미 데이터가 있습니다. 수동으로 입력하세요.', 'error');
+    return;
+  }
+  // Generate rows for each weekday (Mon-Fri) in current month, am+pm
+  const year = currentYear;
+  const month = currentMonth;
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const newRows = [];
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dt = new Date(year, month - 1, day);
+    const dow = dt.getDay();
+    if (dow === 0 || dow === 6) continue; // skip weekends
+    const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    // AM row
+    newRows.push({ date:dateStr, am:true, pm:false, startKm:'', endKm:'', distance:0, fuelAmount:'', fuelCost:'', note:'' });
+    // PM row
+    newRows.push({ date:dateStr, am:false, pm:true, startKm:'', endKm:'', distance:0, fuelAmount:'', fuelCost:'', note:'' });
+  }
+  d.logbook[activeLogVehicle] = newRows;
+  setData(d);
+  renderLogbookForm(d);
+  showToast(`${newRows.length}개 행이 자동 생성되었습니다 (평일 오전/오후)`);
+}
+
+// ===== NEW MONTH =====
+function createNewMonth() {
+  const keys = Object.keys(allData).sort();
+  let d;
+  if (keys.length > 0) {
+    // Copy from last month
+    const last = JSON.parse(JSON.stringify(allData[keys[keys.length-1]]));
+    // Reset variable data
+    last.vehicle.forEach(v => { v.efficiency=0; v.distance=0; v.fuelAmount=0; v.fuelCost=0; v.urea=0; v.washCost=0; });
+    last.fuel = [];
+    if(last.urea) { last.urea.carryover = last.urea.carryover - (last.urea.records||[]).reduce((s,r)=>s+(Number(r.amount)||0),0) + (last.urea.purchase||0); last.urea.purchase=0; last.urea.records=[]; }
+    last.wash = [];
+    last.maint = { toll:[], repair:[] };
+    last.logbook = {};
+    d = last;
+  } else {
+    d = getDefaultData();
+  }
+  setData(d);
+  updateMonthList();
+  renderAll();
+  showToast('새 월 데이터가 생성되었습니다');
+}
+
+// ===== EXPORT / IMPORT =====
+function exportData() {
+  const json = JSON.stringify(allData, null, 2);
+  const blob = new Blob([json], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `로열파크시티_청구서_${getKey()}.json`;
+  a.click();
+  showToast('데이터가 내보내기 되었습니다');
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      Object.assign(allData, imported);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
+      const keys = Object.keys(allData).sort();
+      if (keys.length > 0) { const [y,m]=keys[keys.length-1].split('-'); currentYear=parseInt(y); currentMonth=parseInt(m); }
+      buildSelectors();
+      updateMonthList();
+      renderAll();
+      showToast('데이터를 가져왔습니다');
+    } catch(err) { showToast('파일 형식이 잘못되었습니다', 'error'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function deleteMonth() {
+  if (!confirm(`${currentYear}년 ${currentMonth}월 데이터를 삭제하시겠습니까?`)) return;
+  delete allData[getKey()];
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
+  updateMonthList();
+  renderAll();
+  showToast('삭제되었습니다');
+}
+
+// ===== PDF =====
+function closePrint() { document.getElementById('printOverlay').classList.remove('show'); }
+
+function generatePDF() {
+  const d = getData();
+  if (!d) { showToast('데이터가 없습니다','error'); return; }
+  const c = calcInvoice(d);
+  const b = d.basic;
+  const veh = d.vehicle || [];
+  const fuel = d.fuel || [];
+  const ck = id => document.getElementById(id)?.checked;
+  const yr = currentYear, mo = currentMonth;
+
+  let html = `<h1>검암역 로열파크씨티 푸르지오</h1><div class="print-sub">운영월 : ${yr}년 ${String(mo).padStart(2,'0')}월</div>`;
+
+  // 1. 청구서
+  if (ck('pdf-invoice')) {
+    html += `<div class="section"><div class="section-title">청구서</div><table>
+      <thead><tr><th>구분</th><th>품명</th><th>내역</th><th class="tr">단가</th><th class="tc">수</th><th class="tr">합계</th><th>비고</th></tr></thead><tbody>
+      <tr><td rowspan="4" class="bold">사업비</td><td>인건비</td><td>오전/오후 근무</td><td class="tr">${fmt(b.wage)}</td><td class="tc">${b.headcount}</td><td class="tr">${fmt(c.laborCost)}</td><td></td></tr>
+      <tr><td>4대 보험</td><td>국민연금,건강,고용,산재</td><td class="tr">${fmt(b.insurance)}</td><td class="tc">${b.headcount}</td><td class="tr">${fmt(c.insuranceCost)}</td><td></td></tr>
+      <tr><td>시스템 운영 관리</td><td>관제/상황실/CS</td><td class="tr">${fmt(b.systemCost)}</td><td class="tc">1</td><td class="tr">${fmt(b.systemCost)}</td><td></td></tr>
+      <tr><td>리스크 관리비</td><td>운전자 보험/관리팀장</td><td class="tr">${fmt(b.riskCost)}</td><td class="tc">1</td><td class="tr">${fmt(b.riskCost)}</td><td></td></tr>
+      <tr class="sub-r"><td colspan="5">소계</td><td class="tr">${fmt(c.subtotal)}</td><td></td></tr>
+      <tr><td colspan="2">위탁 운영관리비</td><td>소계의 ${b.mgmtRate}%</td><td></td><td></td><td class="tr">${fmt(Math.round(c.mgmtFee))}</td><td></td></tr>
+      <tr class="sub-r"><td colspan="2" class="bold">중계(1)</td><td class="bold">사업비 합계</td><td></td><td></td><td class="tr bold">${fmt(c.bizTotal)}</td><td>10만원 절사</td></tr>
+      <tr><td rowspan="5" class="bold">운영비</td><td>주유비</td><td>단지별 주유</td><td class="tr">${fmt(c.fuelTotal)}</td><td class="tc">1</td><td class="tr">${fmt(c.fuelTotal)}</td><td></td></tr>
+      <tr><td>요소수</td><td>요소수 주입</td><td class="tr">${fmt(c.ureaTotal)}</td><td class="tc">1</td><td class="tr">${fmt(c.ureaTotal)}</td><td></td></tr>
+      <tr><td>세차</td><td>차량별 세차</td><td class="tr">${fmt(c.washTotal)}</td><td class="tc">1</td><td class="tr">${fmt(c.washTotal)}</td><td></td></tr>
+      <tr><td>점검 및 유지비</td><td>정비/고속주행</td><td class="tr">${fmt(c.maintTotal)}</td><td class="tc">1</td><td class="tr">${fmt(c.maintTotal)}</td><td></td></tr>
+      <tr><td>일반 관리</td><td>물품 구입 등</td><td class="tr">0</td><td class="tc">1</td><td class="tr">0</td><td></td></tr>
+      <tr class="sub-r"><td colspan="2" class="bold">중계(2)</td><td class="bold">운영비 합계</td><td></td><td></td><td class="tr bold">${fmt(c.opTotal)}</td><td>발생 시 청구</td></tr>
+      <tr class="sub-r"><td colspan="2" class="bold">합계</td><td>사업비+운영비</td><td></td><td></td><td class="tr bold">${fmt(c.total)}</td><td>10원 절사</td></tr>
+      <tr><td colspan="2">부가세</td><td>합계의 10%</td><td></td><td></td><td class="tr">${fmt(c.vat)}</td><td></td></tr>
+      <tr class="grand-r"><td colspan="2" class="bold">총계</td><td>청구비용</td><td></td><td></td><td class="tr">${fmt(c.grand)}</td><td>VAT 포함</td></tr>
+    </tbody></table></div>`;
+  }
+
+  // 2. 단지별
+  if (ck('pdf-complex')) {
+    const renderComplex = (name, cx) => `<table>
+      <thead><tr><th colspan="3">${name}</th></tr></thead><tbody>
+      <tr><td>사업비</td><td class="tr">${fmt(cx.biz)}</td><td></td></tr>
+      <tr><td>운영비</td><td class="tr">${fmt(cx.op)}</td><td>주유${fmt(cx.fuel)} + 세차${fmt(cx.wash)} + 정비${fmt(cx.maint)}</td></tr>
+      <tr class="sub-r"><td>합계</td><td class="tr">${fmt(cx.total)}</td><td></td></tr>
+      <tr><td>부가세</td><td class="tr">${fmt(cx.vat)}</td><td></td></tr>
+      <tr class="total-r"><td class="bold">총계</td><td class="tr bold">${fmt(cx.grand)}</td><td>VAT 포함</td></tr>
+    </tbody></table>`;
+    html += `<div class="section"><div class="section-title">단지별 청구서</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>${renderComplex('1단지',c.complex1)}</div>
+        <div>${renderComplex('2단지',c.complex2)}</div>
+      </div></div>`;
+  }
+
+  // 3. 운영비
+  if (ck('pdf-operation')) {
+    html += `<div class="section"><div class="section-title">운영비 내역</div><table>
+      <thead><tr><th>구분</th><th>내역</th><th class="tr">1단지</th><th class="tr">2단지</th><th class="tr">합계</th></tr></thead><tbody>
+      <tr><td>주유비</td><td>차량별 주유</td><td class="tr">${fmt(c.complex1.fuel)}</td><td class="tr">${fmt(c.complex2.fuel)}</td><td class="tr">${fmt(c.fuelTotal)}</td></tr>
+      <tr><td>요소수</td><td>요소수 구매</td><td class="tr">-</td><td class="tr">-</td><td class="tr">${fmt(c.ureaTotal)}</td></tr>
+      <tr><td>세차</td><td>차량별 세차</td><td class="tr">${fmt(c.complex1.wash)}</td><td class="tr">${fmt(c.complex2.wash)}</td><td class="tr">${fmt(c.washTotal)}</td></tr>
+      <tr><td>점검 및 유지비</td><td>정비/고속주행</td><td class="tr">${fmt(c.complex1.maint)}</td><td class="tr">${fmt(c.complex2.maint)}</td><td class="tr">${fmt(c.maintTotal)}</td></tr>
+      <tr class="total-r"><td colspan="2">합계</td><td class="tr">${fmt(c.complex1.op)}</td><td class="tr">${fmt(c.complex2.op)}</td><td class="tr">${fmt(c.opTotal)}</td></tr>
+    </tbody></table></div>`;
+  }
+
+  // 4. 차량 운행 내역
+  if (ck('pdf-vehicle')) {
+    const sorted = [...veh].sort((a,b)=>((a.complex||'').includes('1단지')?0:1)-((b.complex||'').includes('1단지')?0:1));
+    const totalDist = veh.reduce((s,v)=>s+(Number(v.distance)||0),0);
+    const totalFA = veh.reduce((s,v)=>s+(Number(v.fuelAmount)||0),0);
+    const avgE = totalFA>0?(totalDist/totalFA).toFixed(2):'0';
+    html += `<div class="section"><div class="section-title">차량 운행 내역</div><table>
+      <thead><tr><th>단지</th><th>차량</th><th>승무사원</th><th class="tr">연비(km/L)</th><th class="tr">주행(km)</th><th class="tr">주유량(L)</th><th class="tr">주유액(원)</th><th class="tr">요소수(L)</th><th class="tr">세차(원)</th></tr></thead><tbody>
+      ${sorted.map(v=>`<tr><td>${v.complex}</td><td>${v.id}</td><td>${v.driver}</td><td class="tr">${v.efficiency||'-'}</td><td class="tr">${fmt(v.distance)}</td><td class="tr">${v.fuelAmount?Number(v.fuelAmount).toFixed(1):'-'}</td><td class="tr">${fmt(v.fuelCost)}</td><td class="tr">${v.urea||0}</td><td class="tr">${fmt(v.washCost)}</td></tr>`).join('')}
+      <tr class="total-r"><td colspan="3">합계</td><td class="tr">${avgE}</td><td class="tr">${fmt(totalDist)}</td><td class="tr">${totalFA.toFixed(1)}</td><td class="tr">${fmt(c.fuelTotal)}</td><td class="tr">${veh.reduce((s,v)=>s+(Number(v.urea)||0),0)}</td><td class="tr">${fmt(c.washTotal)}</td></tr>
+    </tbody></table></div>`;
+  }
+
+  // 5. 주유 내역
+  if (ck('pdf-fuel') && fuel.length > 0) {
+    html += `<div class="section page-break"><div class="section-title">주유 내역 (유종: 경유)</div><table>
+      <thead><tr><th>날짜</th><th>단지</th><th>차량</th><th class="tr">단가(원)</th><th class="tr">주유량(L)</th><th class="tr">주유액(원)</th><th>비고</th></tr></thead><tbody>
+      ${fuel.filter(r=>r.date&&r.vehicle).map(r=>`<tr><td>${r.date}</td><td>${r.complex}</td><td>${r.vehicle}</td><td class="tr">${fmt(r.unitPrice)}</td><td class="tr">${Number(r.amount).toFixed(3)}</td><td class="tr">${fmt(r.cost)}</td><td>${r.note||''}</td></tr>`).join('')}
+      <tr class="total-r"><td colspan="4">합계</td><td class="tr">${fuel.reduce((s,r)=>s+(Number(r.amount)||0),0).toFixed(1)}</td><td class="tr">${fmt(fuel.reduce((s,r)=>s+parseMoney(r.cost),0))}</td><td></td></tr>
+    </tbody></table></div>`;
+  }
+
+  // 6. 요소수
+  if (ck('pdf-urea')) {
+    const u = d.urea||{carryover:0,purchase:0,price:9000,records:[]};
+    const used = (u.records||[]).reduce((s,r)=>s+(Number(r.amount)||0),0);
+    html += `<div class="section"><div class="section-title">요소수 현황</div>
+      <table><tbody>
+        <tr><td>전월 재고량</td><td class="tr">${u.carryover} L</td><td>구입량</td><td class="tr">${u.purchase} L</td><td>사용량</td><td class="tr">${used} L</td><td>현재 재고</td><td class="tr">${u.carryover+u.purchase-used} L</td></tr>
+      </tbody></table>
+      ${(u.records||[]).length>0?`<table style="margin-top:8px"><thead><tr><th>날짜</th><th>차량</th><th class="tr">출고량(L)</th><th class="tr">재고(L)</th></tr></thead><tbody>
+        ${(()=>{let stock=u.carryover+u.purchase;return u.records.map(r=>{stock-=Number(r.amount)||0;return`<tr><td>${r.date}</td><td>${r.vehicle}</td><td class="tr">${r.amount}</td><td class="tr">${stock}</td></tr>`;}).join('');})()}
+      </tbody></table>`:''}</div>`;
+  }
+
+  // 7. 세차
+  if (ck('pdf-wash')) {
+    const w = d.wash||[];
+    html += `<div class="section"><div class="section-title">세차 기록</div><table>
+      <thead><tr><th>날짜</th><th>단지</th><th>차량</th><th class="tr">금액(원)</th></tr></thead><tbody>
+      ${w.map(r=>`<tr><td>${r.date}</td><td>${r.complex}</td><td>${r.vehicle}</td><td class="tr">${fmt(r.amount)}</td></tr>`).join('')}
+      <tr class="total-r"><td colspan="3">합계</td><td class="tr">${fmt(c.washTotal)}</td></tr>
+    </tbody></table></div>`;
+  }
+
+  // 8. 정비
+  if (ck('pdf-maint')) {
+    const toll = d.maint?.toll||[];
+    const repair = d.maint?.repair||[];
+    html += `<div class="section"><div class="section-title">정비 기록 (고속주행 포함)</div>`;
+    if (toll.length>0) {
+      html += `<p style="font-weight:600;margin-bottom:4px;">고속주행 톨게이트</p><table>
+        <thead><tr><th>날짜</th><th>단지</th><th>차량</th><th class="tr">금액</th><th>비고</th></tr></thead><tbody>
+        ${toll.map(r=>`<tr><td>${r.date}</td><td>${r.complex}</td><td>${r.vehicle}</td><td class="tr">${fmt(r.amount)}</td><td>${r.note||''}</td></tr>`).join('')}
+        <tr class="total-r"><td colspan="3">소계</td><td class="tr">${fmt(c.tollTotal)}</td><td></td></tr>
+      </tbody></table>`;
+    }
+    if (repair.length>0) {
+      html += `<p style="font-weight:600;margin:12px 0 4px;">차량 정비</p><table>
+        <thead><tr><th>날짜</th><th>단지</th><th>차량</th><th>정비내역</th><th>업체</th><th class="tr">금액</th></tr></thead><tbody>
+        ${repair.map(r=>`<tr><td>${r.date}</td><td>${r.complex}</td><td>${r.vehicle}</td><td>${r.detail||''}</td><td>${r.vendor||''}</td><td class="tr">${fmt(r.amount)}</td></tr>`).join('')}
+        <tr class="total-r"><td colspan="5">소계</td><td class="tr">${fmt(c.repairTotal)}</td></tr>
+      </tbody></table>`;
+    }
+    html += `</div>`;
+  }
+
+  // 9. 운행일지
+  if (ck('pdf-logbook')) {
+    const logbook = d.logbook||{};
+    const vehs2 = [...(d.basic?.vehicles||[])].sort((a,b)=>((a.complex||'').includes('1단지')?0:1)-((b.complex||'').includes('1단지')?0:1));
+    vehs2.forEach((v,vi) => {
+      const rows = logbook[v.id]||[];
+      if (rows.length===0) return;
+      const monthPrefix = `${yr}-${String(mo).padStart(2,'0')}`;
+      const mRows = rows.filter(r=>r.date&&r.date.startsWith(monthPrefix));
+      if (mRows.length===0) return;
+      html += `<div class="section ${vi>0?'page-break':''}"><div class="section-title">운행일지 - ${v.complex} (${v.id} / ${v.driver})</div><table>
+        <thead><tr><th>일자</th><th class="tc">오전</th><th class="tc">오후</th><th class="tr">출발(km)</th><th class="tr">종료(km)</th><th class="tr">주행(km)</th><th class="tr">주유량(L)</th><th class="tr">주유액(원)</th></tr></thead><tbody>
+        ${mRows.map(r=>`<tr><td>${r.date}${r.am?' am':' pm'}</td><td class="tc">${r.am?'●':''}</td><td class="tc">${r.pm?'●':''}</td><td class="tr">${fmt(r.startKm)}</td><td class="tr">${fmt(r.endKm)}</td><td class="tr">${fmt(r.distance)}</td><td class="tr">${r.fuelAmount||''}</td><td class="tr">${r.fuelCost?fmt(parseMoney(r.fuelCost)):''}</td></tr>`).join('')}
+        <tr class="total-r"><td colspan="5">합계</td><td class="tr">${fmt(mRows.reduce((s,r)=>s+(Number(r.distance)||0),0))}</td><td class="tr">${(mRows.reduce((s,r)=>s+(r.fuelAmount?Number(r.fuelAmount):0),0)||'').toString()}</td><td class="tr">${fmt(mRows.reduce((s,r)=>s+parseMoney(r.fuelCost),0))}</td></tr>
+      </tbody></table></div>`;
+    });
+  }
+
+  document.getElementById('printContent').innerHTML = html;
+  document.getElementById('printOverlay').classList.add('show');
+}
+
+// ===== MONEY FORMAT =====
+// 금액 입력 필드에 콤마 자동 표시
+function fmtMoney(v) {
+  const n = String(v).replace(/[^0-9.-]/g,'');
+  if (n === '' || n === '-') return n;
+  const parts = n.split('.');
+  parts[0] = Number(parts[0]).toLocaleString('ko-KR');
+  return parts.join('.');
+}
+function parseMoney(s) { return Number(String(s).replace(/,/g,'')) || 0; }
+
+// 포커스: 콤마 제거해서 편집 쉽게
+document.addEventListener('focusin', e => {
+  if (e.target.matches && e.target.dataset && e.target.dataset.fmt === 'money') {
+    const raw = String(e.target.value).replace(/,/g,'');
+    e.target.value = raw === '0' ? '' : raw;
+  }
+});
+// 블러: 콤마 추가
+document.addEventListener('focusout', e => {
+  if (e.target.matches && e.target.dataset && e.target.dataset.fmt === 'money') {
+    e.target.value = fmtMoney(e.target.value);
+  }
+});
+
+// ===== AUTO-SAVE =====
+// Detect which input page we're on and auto-save + refresh dashboard/invoice
+let autoSaveTimer = null;
+function autoSave() {
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(() => {
+    const activePage = document.querySelector('.page.active');
+    if (!activePage) return;
+    const id = activePage.id;
+    if (id === 'input-basic') saveBasicInfoSilent();
+    else if (id === 'input-vehicle') saveVehicleDataSilent();
+    else if (id === 'input-fuel') saveFuelDataSilent();
+    else if (id === 'input-urea') saveUreaDataSilent();
+    else if (id === 'input-wash') saveWashDataSilent();
+    else if (id === 'input-maint') saveMaintDataSilent();
+    else if (id === 'input-logbook') saveLogbookSilent();
+  }, 400);
+}
+
+// Silent save functions (no toast, no re-render of the input form itself)
+function saveBasicInfoSilent() {
+  let d = getData() || getDefaultData();
+  d.basic.wage = parseMoney(document.getElementById('wage').value);
+  d.basic.headcount = Number(document.getElementById('headcount').value);
+  d.basic.insurance = parseMoney(document.getElementById('insurance').value);
+  d.basic.systemCost = parseMoney(document.getElementById('systemCost').value);
+  d.basic.riskCost = parseMoney(document.getElementById('riskCost').value);
+  d.basic.mgmtRate = Number(document.getElementById('mgmtRate').value);
+  const rows = document.querySelectorAll('#vehicleInfoTable input');
+  const vehs = d.basic.vehicles || getDefaultVehicles();
+  rows.forEach(inp => { const i = Number(inp.dataset.vi); vehs[i][inp.dataset.f] = inp.value; });
+  d.basic.vehicles = vehs;
+  d.vehicle = vehs.map((v,i) => {
+    const existing = (d.vehicle||[])[i] || {};
+    return { ...v, efficiency:existing.efficiency||0, distance:existing.distance||0, fuelAmount:existing.fuelAmount||0, fuelCost:existing.fuelCost||0, urea:existing.urea||0, washCost:existing.washCost||0 };
+  });
+  setData(d); syncVehiclesToLogApp(vehs); refreshViews(d);
+}
+
+function saveVehicleDataSilent() {
+  let d = getData() || getDefaultData();
+  const vehs = d.vehicle || [];
+  document.querySelectorAll('#vehicleInputTable input').forEach(inp => {
+    const i = Number(inp.dataset.vi);
+    if (vehs[i]) vehs[i][inp.dataset.f] = parseMoney(inp.value);
+  });
+  d.vehicle = vehs;
+  setData(d); refreshViews(d);
+}
+
+function saveFuelDataSilent() {
+  let d = getData() || getDefaultData();
+  if (!d.fuel) d.fuel = [];
+  document.querySelectorAll('#fuelInputTable input, #fuelInputTable select').forEach(inp => {
+    const i = Number(inp.dataset.fi); if (isNaN(i) || !d.fuel[i]) return;
+    const f = inp.dataset.f;
+    d.fuel[i][f] = (f==='date'||f==='complex'||f==='vehicle'||f==='note') ? inp.value : parseMoney(inp.value);
+  });
+  // 주유액 자동계산 (단가 x 주유량)
+  d.fuel.forEach(r => { r.cost = Math.round((Number(r.unitPrice)||0) * (Number(r.amount)||0)); });
+  setData(d); refreshViews(d);
+}
+
+function saveUreaDataSilent() {
+  let d = getData() || getDefaultData();
+  d.urea = d.urea || { carryover:0, purchase:0, price:9000, records:[] };
+  d.urea.carryover = Number(document.getElementById('ureaCarryover').value)||0;
+  d.urea.purchase = Number(document.getElementById('ureaPurchase').value)||0;
+  d.urea.price = parseMoney(document.getElementById('ureaPrice').value)||9000;
+  document.querySelectorAll('#ureaInputTable input, #ureaInputTable select').forEach(inp => {
+    const i = Number(inp.dataset.ui); if(isNaN(i)) return;
+    d.urea.records[i][inp.dataset.f] = inp.dataset.f==='amount' ? parseMoney(inp.value) : inp.value;
+  });
+  setData(d); refreshViews(d);
+}
+
+function saveWashDataSilent() {
+  let d = getData() || getDefaultData();
+  if(!d.wash) d.wash=[];
+  document.querySelectorAll('#washInputTable input, #washInputTable select').forEach(inp => {
+    const i = Number(inp.dataset.wi); if(isNaN(i)) return;
+    d.wash[i][inp.dataset.f] = inp.dataset.f==='amount' ? parseMoney(inp.value) : inp.value;
+  });
+  setData(d); refreshViews(d);
+}
+
+function saveMaintDataSilent() {
+  let d = getData() || getDefaultData();
+  if(!d.maint) d.maint={toll:[],repair:[]};
+  document.querySelectorAll('#tollInputTable input, #tollInputTable select').forEach(inp => {
+    const i = Number(inp.dataset.ti); if(isNaN(i)) return;
+    d.maint.toll[i][inp.dataset.f] = (inp.dataset.f==='amount') ? parseMoney(inp.value) : inp.value;
+  });
+  document.querySelectorAll('#repairInputTable input, #repairInputTable select').forEach(inp => {
+    const i = Number(inp.dataset.ri); if(isNaN(i)) return;
+    d.maint.repair[i][inp.dataset.f] = (inp.dataset.f==='amount') ? parseMoney(inp.value) : inp.value;
+  });
+  setData(d); refreshViews(d);
+}
+
+function refreshViews(d) {
+  if (d) { calcVehicleFromSources(d); setData(d); }
+  renderDashboard(d);
+  renderInvoice(d);
+  renderVehicleForm(d);
+  updateMonthList();
+}
+
+// Global event delegation for auto-save
+document.querySelector('.main').addEventListener('input', e => {
+  if (e.target.matches('input, select, textarea')) autoSave();
+});
+document.querySelector('.main').addEventListener('change', e => {
+  if (e.target.matches('input, select, textarea')) autoSave();
+});
+
+// ===== NAV =====
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById(item.dataset.page).classList.add('active');
+    document.querySelector('.sidebar').classList.remove('open');
+  });
+});
+
+// ===== PRELOAD March 2026 data =====
+// Compact data helpers
+function _r(d,a,p,s,e,k,f,c){return{date:d,am:!!a,pm:!!p,startKm:s,endKm:e,distance:k,fuelAmount:f||'',fuelCost:c||'',note:''}}
+function _f(d,x,v,u,a,c,n){return{date:d,complex:x,vehicle:v,unitPrice:u,amount:a,cost:c,note:n||''}}
+
+function preloadMarch2026() {
+  const key = '2026-03';
+  if (allData[key]) return;
+  // Logbook data - all 6 vehicles, full month (3월 only, no April summary rows)
+  const log7315=[
+_r('2026-03-03',1,0,56643,56693,50),_r('2026-03-03',0,1,56693,56739,46),_r('2026-03-04',1,0,56739,56788,49,54.536,98000),_r('2026-03-04',0,1,56788,56838,50),_r('2026-03-05',1,0,56838,56884,46),_r('2026-03-05',0,1,56884,56918,34),_r('2026-03-06',1,0,56918,56972,54,65.353,126000),_r('2026-03-06',0,1,56972,57019,47),_r('2026-03-09',1,0,57019,57064,45),_r('2026-03-09',0,1,57064,57115,51),_r('2026-03-10',1,0,57115,57162,47,56.585,113000),_r('2026-03-10',0,1,57162,57206,44),_r('2026-03-11',1,0,57206,57252,46),_r('2026-03-11',0,1,57252,57300,48),_r('2026-03-12',1,0,57300,57351,51,57.011,111000),_r('2026-03-12',0,1,57351,57399,48),_r('2026-03-13',1,0,57399,57449,50),_r('2026-03-13',0,1,57449,57492,43),_r('2026-03-16',1,0,57492,57539,47,53.919,97000),_r('2026-03-16',0,1,57539,57586,47),_r('2026-03-17',1,0,57586,57631,45),_r('2026-03-17',0,1,57631,57685,54),_r('2026-03-18',1,0,57685,57735,50,56.143,101000),_r('2026-03-18',0,1,57735,57779,44),_r('2026-03-19',1,0,57779,57829,50),_r('2026-03-19',0,1,57829,57879,50),_r('2026-03-20',1,0,57879,57928,49,59.478,107000),_r('2026-03-20',0,1,57928,57980,52),_r('2026-03-23',1,0,57980,58026,46),_r('2026-03-23',0,1,58026,58072,46),_r('2026-03-24',1,0,58072,58118,46,53.919,97000),_r('2026-03-24',0,1,58118,58162,44),_r('2026-03-25',1,0,58162,58215,53),_r('2026-03-25',0,1,58215,58266,51),_r('2026-03-26',1,0,58266,58317,51,56.143,101000),_r('2026-03-26',0,1,58317,58365,48),_r('2026-03-27',1,0,58365,58410,45),_r('2026-03-27',0,1,58410,58457,47),_r('2026-03-30',1,0,58457,58505,48,57.399,109000),_r('2026-03-30',0,1,58505,58561,56),_r('2026-03-31',1,0,58561,58638,77),_r('2026-03-31',0,1,58638,58681,43)];
+  const log7327=[
+_r('2026-03-03',1,0,57138,57191,53,26.758,43000),_r('2026-03-03',0,1,57191,57238,47),_r('2026-03-04',1,0,57238,57291,53,26.155,47000),_r('2026-03-04',0,1,57291,57339,48),_r('2026-03-05',1,0,57339,57417,78),_r('2026-03-05',0,1,57417,57465,48),_r('2026-03-06',1,0,57465,57517,52,61.204,118000),_r('2026-03-06',0,1,57517,57562,45),_r('2026-03-09',1,0,57562,57608,46),_r('2026-03-09',0,1,57608,57656,48),_r('2026-03-10',1,0,57656,57708,52,50.076,100000),_r('2026-03-10',0,1,57708,57759,51),_r('2026-03-11',1,0,57759,57807,48),_r('2026-03-11',0,1,57807,57855,48),_r('2026-03-12',1,0,57855,57906,51,51.875,101000),_r('2026-03-12',0,1,57906,57955,49),_r('2026-03-13',1,0,57955,58002,47),_r('2026-03-13',0,1,58002,58051,49),_r('2026-03-16',1,0,58051,58104,53,56.143,83540),_r('2026-03-16',0,1,58104,58147,43),_r('2026-03-17',1,0,58147,58191,44),_r('2026-03-17',0,1,58191,58234,43),_r('2026-03-18',1,0,58234,58286,52,50.584,91000),_r('2026-03-18',0,1,58286,58337,51),_r('2026-03-19',1,0,58337,58388,51),_r('2026-03-19',0,1,58388,58435,47),_r('2026-03-20',1,0,58435,58488,53,50.028,90000),_r('2026-03-20',0,1,58488,58539,51),_r('2026-03-23',1,0,58539,58587,48),_r('2026-03-23',0,1,58587,58636,49),_r('2026-03-24',1,0,58636,58697,61,55.587,100000),_r('2026-03-24',0,1,58697,58739,42),_r('2026-03-25',1,0,58739,58788,49),_r('2026-03-25',0,1,58788,58838,50),_r('2026-03-26',1,0,58838,58890,52,49.472,89000),_r('2026-03-26',0,1,58890,58937,47),_r('2026-03-27',1,0,58937,58985,48),_r('2026-03-27',0,1,58985,59035,50),_r('2026-03-30',1,0,59035,59083,48,56.346,107000),_r('2026-03-30',0,1,59083,59131,48),_r('2026-03-31',1,0,59131,59177,46),_r('2026-03-31',0,1,59177,59234,57)];
+  const log7399=[
+_r('2026-03-03',1,0,57805,57853,48),_r('2026-03-03',0,1,57853,57902,49),_r('2026-03-04',1,0,57902,57953,51,51.753,93000),_r('2026-03-04',0,1,57953,57995,42),_r('2026-03-05',1,0,57995,58040,45),_r('2026-03-05',0,1,58040,58092,52),_r('2026-03-06',1,0,58092,58144,52,57.054,110000),_r('2026-03-06',0,1,58144,58189,45),_r('2026-03-09',1,0,58189,58235,46),_r('2026-03-09',0,1,58235,58278,43),_r('2026-03-10',1,0,58278,58328,50,49.575,99000),_r('2026-03-10',0,1,58328,58376,48),_r('2026-03-11',1,0,58376,58427,51),_r('2026-03-11',0,1,58427,58478,51),_r('2026-03-12',1,0,58478,58526,48,51.362,100000),_r('2026-03-12',0,1,58526,58573,47),_r('2026-03-13',1,0,58573,58623,50),_r('2026-03-13',0,1,58623,58671,48),_r('2026-03-16',1,0,58671,58723,52,59.478,107000),_r('2026-03-16',0,1,58723,58771,48),_r('2026-03-17',1,0,58771,58820,49),_r('2026-03-17',0,1,58820,58867,47),_r('2026-03-18',1,0,58867,58913,46,52.252,94000),_r('2026-03-18',0,1,58913,58958,45),_r('2026-03-19',1,0,58958,59003,45),_r('2026-03-19',0,1,59003,59053,50),_r('2026-03-20',1,0,59053,59102,49,50.028,90000),_r('2026-03-20',0,1,59102,59144,42),_r('2026-03-23',1,0,59144,59193,49),_r('2026-03-23',0,1,59193,59245,52),_r('2026-03-24',1,0,59245,59296,51,55.031,99000),_r('2026-03-24',0,1,59296,59349,53),_r('2026-03-25',1,0,59349,59397,48),_r('2026-03-25',0,1,59397,59448,51),_r('2026-03-26',1,0,59448,59504,56,53.919,97000),_r('2026-03-26',0,1,59504,59551,47),_r('2026-03-27',1,0,59551,59628,77),_r('2026-03-27',0,1,59628,59680,52),_r('2026-03-30',1,0,59680,59732,52,57.926,110000),_r('2026-03-30',0,1,59732,59778,46),_r('2026-03-31',1,0,59778,59824,46),_r('2026-03-31',0,1,59824,59873,49)];
+  const log7336=[
+_r('2026-03-03',1,0,56905,56945,40,47.294,76000),_r('2026-03-03',0,1,56945,56993,48),_r('2026-03-04',1,0,56993,57032,39),_r('2026-03-04',0,1,57032,57075,43),_r('2026-03-05',1,0,57075,57115,40,47.302,85000),_r('2026-03-05',0,1,57115,57161,46),_r('2026-03-06',1,0,57161,57199,38),_r('2026-03-06',0,1,57199,57248,49),_r('2026-03-09',1,0,57248,57288,40,46.07,92000),_r('2026-03-09',0,1,57288,57342,54),_r('2026-03-10',1,0,57342,57409,67),_r('2026-03-10',0,1,57409,57451,42),_r('2026-03-11',1,0,57451,57492,41,52.579,105000),_r('2026-03-11',0,1,57492,57540,48),_r('2026-03-12',1,0,57540,57578,38),_r('2026-03-12',0,1,57578,57626,48),_r('2026-03-13',1,0,57626,57671,45,47.253,92000),_r('2026-03-13',0,1,57671,57714,43),_r('2026-03-16',1,0,57714,57752,38),_r('2026-03-16',0,1,57752,57800,48),_r('2026-03-17',1,0,57800,57840,40,48.917,88000),_r('2026-03-17',0,1,57840,57889,49),_r('2026-03-18',1,0,57889,57927,38),_r('2026-03-18',0,1,57927,57973,46),_r('2026-03-19',1,0,57973,58014,41,47.249,85000),_r('2026-03-19',0,1,58014,58057,43),_r('2026-03-20',1,0,58057,58095,38),_r('2026-03-20',0,1,58095,58148,53),_r('2026-03-23',1,0,58148,58187,39,44.47,80000),_r('2026-03-23',0,1,58187,58235,48),_r('2026-03-24',1,0,58235,58278,43),_r('2026-03-24',0,1,58278,58326,48),_r('2026-03-25',1,0,58326,58365,39,43.358,78000),_r('2026-03-25',0,1,58365,58419,54),_r('2026-03-26',1,0,58419,58457,38),_r('2026-03-26',0,1,58457,58500,43),_r('2026-03-27',1,0,58500,58540,40,44.234,84000),_r('2026-03-27',0,1,58540,58587,47),_r('2026-03-30',1,0,58587,58625,38),_r('2026-03-30',0,1,58625,58673,48),_r('2026-03-31',1,0,58673,58715,42,43.181,82000),_r('2026-03-31',0,1,58715,58757,42)];
+  const log5578=[
+_r('2026-03-03',1,0,59002,59043,41,47.916,77000),_r('2026-03-03',0,1,59043,59087,44),_r('2026-03-04',1,0,59087,59129,42),_r('2026-03-04',0,1,59129,59173,44),_r('2026-03-05',1,0,59173,59221,48,50.084,90000),_r('2026-03-05',0,1,59221,59261,40),_r('2026-03-06',1,0,59261,59307,46),_r('2026-03-06',0,1,59307,59347,40),_r('2026-03-09',1,0,59347,59395,48,45.068,90000),_r('2026-03-09',0,1,59395,59435,40),_r('2026-03-10',1,0,59435,59487,52),_r('2026-03-10',0,1,59487,59524,37),_r('2026-03-11',1,0,59524,59574,50,57.587,115000),_r('2026-03-11',0,1,59574,59656,82),_r('2026-03-12',1,0,59656,59695,39),_r('2026-03-12',0,1,59695,59742,47),_r('2026-03-13',1,0,59742,59784,42,48.917,88000),_r('2026-03-13',0,1,59784,59834,50),_r('2026-03-16',1,0,59834,59873,39),_r('2026-03-16',0,1,59873,59925,52),_r('2026-03-17',1,0,59925,59965,40,49.472,89000),_r('2026-03-17',0,1,59965,60017,52),_r('2026-03-18',1,0,60017,60056,39),_r('2026-03-18',0,1,60056,60110,54),_r('2026-03-19',1,0,60110,60151,41,48.361,87000),_r('2026-03-19',0,1,60151,60193,42),_r('2026-03-20',1,0,60193,60232,39),_r('2026-03-20',0,1,60232,60278,46),_r('2026-03-23',1,0,60278,60325,47,48.917,88000),_r('2026-03-23',0,1,60325,60372,47),_r('2026-03-24',1,0,60372,60411,39),_r('2026-03-24',0,1,60411,60458,47),_r('2026-03-25',1,0,60458,60499,41,46.137,83000),_r('2026-03-25',0,1,60499,60552,53),_r('2026-03-26',1,0,60552,60591,39),_r('2026-03-26',0,1,60591,60640,49),_r('2026-03-27',1,0,60640,60681,41,47.394,90000),_r('2026-03-27',0,1,60681,60724,43),_r('2026-03-30',1,0,60724,60764,40),_r('2026-03-30',0,1,60764,60810,46),_r('2026-03-31',1,0,60810,60850,40,47.394,90000),_r('2026-03-31',0,1,60850,60898,48)];
+  const log7376=[
+_r('2026-03-03',1,0,56262,56306,44,56.005,90000),_r('2026-03-03',0,1,56306,56353,47),_r('2026-03-04',1,0,56353,56393,40),_r('2026-03-04',0,1,56393,56440,47),_r('2026-03-05',1,0,56440,56511,71,50.084,90000),_r('2026-03-05',0,1,56511,56557,46),_r('2026-03-06',1,0,56557,56598,41),_r('2026-03-06',0,1,56598,56643,45),_r('2026-03-09',1,0,56643,56685,42,45.068,90000),_r('2026-03-09',0,1,56685,56727,42),_r('2026-03-10',1,0,56727,56770,43),_r('2026-03-10',0,1,56770,56817,47),_r('2026-03-11',1,0,56817,56861,44,65.098,130000),_r('2026-03-11',0,1,56861,56908,47),_r('2026-03-12',1,0,56908,56949,41),_r('2026-03-12',0,1,56949,56996,47),_r('2026-03-13',1,0,56996,57038,42,35.953,70000),_r('2026-03-13',0,1,57038,57085,47),_r('2026-03-16',1,0,57085,57131,46),_r('2026-03-16',0,1,57131,57179,48),_r('2026-03-17',1,0,57179,57217,38,65.592,118000),_r('2026-03-17',0,1,57217,57262,45),_r('2026-03-18',1,0,57262,57302,40),_r('2026-03-18',0,1,57302,57348,46),_r('2026-03-19',1,0,57348,57390,42,44.47,80000),_r('2026-03-19',0,1,57390,57439,49),_r('2026-03-20',1,0,57439,57479,40),_r('2026-03-20',0,1,57479,57526,47),_r('2026-03-23',1,0,57526,57568,42,44.47,80000),_r('2026-03-23',0,1,57568,57620,52),_r('2026-03-24',1,0,57620,57661,41),_r('2026-03-24',0,1,57661,57707,46),_r('2026-03-25',1,0,57707,57749,42,50.028,90000),_r('2026-03-25',0,1,57749,57792,43),_r('2026-03-26',1,0,57792,57832,40),_r('2026-03-26',0,1,57832,57878,46),_r('2026-03-27',1,0,57878,57923,45,49.5,94000),_r('2026-03-27',0,1,57923,57973,50),_r('2026-03-30',1,0,57973,58013,40),_r('2026-03-30',0,1,58013,58059,46),_r('2026-03-31',1,0,58059,58100,41,47.394,90000),_r('2026-03-31',0,1,58100,58147,47)];
+
+  // Fuel detail data (3-1.주유 sheet) - filtered to valid records only
+  const fuelData=[
+_f('2026-03-03','2단지','7336',1607,47.294,76000),_f('2026-03-03','2단지','5578',1607,47.916,77000),_f('2026-03-03','2단지','7376',1607,56.005,90000),_f('2026-03-03','1단지','7327',1607,26.758,43000),
+_f('2026-03-04','1단지','7315',1797,54.536,98000),_f('2026-03-04','1단지','7327',1797,26.155,47000,'7327 분할주유'),_f('2026-03-04','1단지','7399',1797,51.753,93000),
+_f('2026-03-05','2단지','7336',1797,47.302,85000),_f('2026-03-05','2단지','5578',1797,50.084,90000),_f('2026-03-05','2단지','7376',1797,50.084,90000),
+_f('2026-03-06','1단지','7315',1928,65.353,126000),_f('2026-03-06','1단지','7327',1928,61.204,118000),_f('2026-03-06','1단지','7399',1928,57.054,110000),
+_f('2026-03-09','2단지','7336',1997,46.07,92000),_f('2026-03-09','2단지','5578',1997,45.068,90000),_f('2026-03-09','2단지','7376',1997,45.068,90000),
+_f('2026-03-10','1단지','7315',1997,56.585,113000),_f('2026-03-10','1단지','7327',1997,50.076,100000),_f('2026-03-10','1단지','7399',1997,49.575,99000),
+_f('2026-03-11','2단지','7336',1997,52.579,105000),_f('2026-03-11','2단지','5578',1997,57.587,115000),_f('2026-03-11','2단지','7376',1997,65.098,130000),
+_f('2026-03-12','1단지','7315',1947,57.011,111000),_f('2026-03-12','1단지','7327',1947,51.875,101000),_f('2026-03-12','1단지','7399',1947,51.362,100000),
+_f('2026-03-13','2단지','7336',1947,47.253,92000),_f('2026-03-13','2단지','5578',1799,48.917,88000),_f('2026-03-13','2단지','7376',1947,35.953,70000),
+_f('2026-03-16','1단지','7315',1799,53.919,97000),_f('2026-03-16','1단지','7327',1799,56.143,101000),_f('2026-03-16','1단지','7399',1799,59.478,107000),
+_f('2026-03-17','2단지','7336',1799,48.917,88000),_f('2026-03-17','2단지','5578',1799,49.472,89000),_f('2026-03-17','2단지','7376',1799,65.592,118000),
+_f('2026-03-18','1단지','7315',1799,56.143,101000),_f('2026-03-18','1단지','7327',1799,50.584,91000),_f('2026-03-18','1단지','7399',1799,52.252,94000),
+_f('2026-03-19','2단지','7336',1799,47.249,85000),_f('2026-03-19','2단지','5578',1799,48.361,87000),_f('2026-03-19','2단지','7376',1799,44.47,80000),
+_f('2026-03-20','1단지','7315',1799,59.478,107000),_f('2026-03-20','1단지','7327',1799,50.028,90000),_f('2026-03-20','1단지','7399',1799,50.028,90000),
+_f('2026-03-23','2단지','7336',1799,44.47,80000),_f('2026-03-23','2단지','5578',1799,48.917,88000),_f('2026-03-23','2단지','7376',1799,44.47,80000),
+_f('2026-03-24','1단지','7315',1799,53.919,97000),_f('2026-03-24','1단지','7327',1799,55.587,100000),_f('2026-03-24','1단지','7399',1799,55.031,99000),
+_f('2026-03-25','2단지','7336',1799,43.358,78000),_f('2026-03-25','2단지','5578',1799,46.137,83000),_f('2026-03-25','2단지','7376',1799,50.028,90000),
+_f('2026-03-26','1단지','7315',1799,56.143,101000),_f('2026-03-26','1단지','7327',1799,49.472,89000),_f('2026-03-26','1단지','7399',1799,53.919,97000),
+_f('2026-03-27','2단지','7336',1899,44.234,84000),_f('2026-03-27','2단지','5578',1899,47.394,90000),_f('2026-03-27','2단지','7376',1899,49.5,94000),
+_f('2026-03-30','1단지','7315',1899,57.399,109000),_f('2026-03-30','1단지','7327',1899,56.346,107000),_f('2026-03-30','1단지','7399',1899,57.926,110000),
+_f('2026-03-31','2단지','7336',1899,43.181,82000),_f('2026-03-31','2단지','5578',1899,47.394,90000),_f('2026-03-31','2단지','7376',1899,47.394,90000)];
+
+  allData[key] = {
+    basic: { wage:4000000, headcount:6, insurance:341040, systemCost:3500000, riskCost:1500000, mgmtRate:7,
+      vehicles: [
+        {id:'7336',complex:'2단지1호',driver:'김동복',year:'2023'},
+        {id:'5578',complex:'2단지2호',driver:'채재영',year:''},
+        {id:'7376',complex:'2단지3호',driver:'강희선',year:''},
+        {id:'7315',complex:'1단지1호',driver:'송진희',year:'2023'},
+        {id:'7327',complex:'1단지2호',driver:'함동남',year:'2023'},
+        {id:'7399',complex:'1단지3호',driver:'김영대',year:'2020'}
+      ]
+    },
+    vehicle: [
+      {id:'7336',complex:'2단지1호',driver:'김동복',efficiency:3.98,distance:2038,fuelAmount:511.907,fuelCost:947000,urea:10,washCost:40000},
+      {id:'5578',complex:'2단지2호',driver:'채재영',efficiency:3.90,distance:2096,fuelAmount:537.247,fuelCost:987000,urea:10,washCost:40000},
+      {id:'7376',complex:'2단지3호',driver:'강희선',efficiency:3.74,distance:2068,fuelAmount:553.662,fuelCost:1022000,urea:20,washCost:40000},
+      {id:'7315',complex:'1단지1호',driver:'송진희',efficiency:3.25,distance:1852,fuelAmount:570.486,fuelCost:1060000,urea:10,washCost:40000},
+      {id:'7327',complex:'1단지2호',driver:'함동남',efficiency:3.55,distance:1896,fuelAmount:534.228,fuelCost:987000,urea:30,washCost:40000},
+      {id:'7399',complex:'1단지3호',driver:'김영대',efficiency:3.50,distance:1885,fuelAmount:538.378,fuelCost:999000,urea:20,washCost:40000}
+    ],
+    fuel: fuelData,
+    urea: { carryover:280, purchase:0, price:9000, records:[
+      {date:'2026-03-05',vehicle:'7327',amount:10},{date:'2026-03-10',vehicle:'7315',amount:10},
+      {date:'2026-03-12',vehicle:'7376',amount:10},{date:'2026-03-17',vehicle:'7336',amount:10},
+      {date:'2026-03-18',vehicle:'7399',amount:10},{date:'2026-03-18',vehicle:'5578',amount:10},
+      {date:'2026-03-19',vehicle:'7376',amount:10},{date:'2026-03-24',vehicle:'7327',amount:10},
+      {date:'2026-03-25',vehicle:'7315',amount:10},{date:'2026-03-27',vehicle:'7327',amount:10}
+    ]},
+    wash: [
+      {date:'2026-03-16',complex:'2단지',vehicle:'7376',amount:40000},
+      {date:'2026-03-23',complex:'2단지',vehicle:'5578',amount:40000},
+      {date:'2026-03-24',complex:'2단지',vehicle:'7336',amount:40000},
+      {date:'2026-03-24',complex:'1단지',vehicle:'7327',amount:40000},
+      {date:'2026-03-25',complex:'1단지',vehicle:'7315',amount:40000},
+      {date:'2026-03-26',complex:'1단지',vehicle:'7399',amount:40000}
+    ],
+    maint: {
+      toll: [
+        {date:'2026-03-04',complex:'2단지',vehicle:'5578',amount:6400,note:'진입/진출'},
+        {date:'2026-03-05',complex:'1단지',vehicle:'7327',amount:6400,note:'진입/진출'},
+        {date:'2026-03-05',complex:'2단지',vehicle:'7376',amount:6400,note:'진입/진출'},
+        {date:'2026-03-10',complex:'2단지',vehicle:'7336',amount:6400,note:'진입/진출'},
+        {date:'2026-03-27',complex:'1단지',vehicle:'7399',amount:6400,note:'진입/진출'},
+        {date:'2026-03-31',complex:'1단지',vehicle:'7315',amount:6400,note:'진입/진출'}
+      ],
+      repair: [
+        {date:'2026-03-04',complex:'2단지',vehicle:'5578',detail:'배터리 교체',vendor:'삼공사',amount:370000},
+        {date:'2026-03-19',complex:'2단지',vehicle:'7336',detail:'후방카메라/후방모니터 교체',vendor:'네비원',amount:330000},
+        {date:'2026-03-31',complex:'1단지',vehicle:'7327',detail:'타이어 펑크 수리',vendor:'신왕길타이어',amount:15000}
+      ]
+    },
+    logbook: { '7315':log7315, '7327':log7327, '7399':log7399, '7336':log7336, '5578':log5578, '7376':log7376 }
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
+}
+
+preloadMarch2026();
+// ===== IMPORT LOGBOOK FROM MOBILE APP =====
+let pendingImportData = null;
+
+function importLogbook(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.source !== 'shuttle-logbook-app') {
+        showToast('올바른 운행일지 앱 파일이 아닙니다.', 'error');
+        return;
+      }
+      pendingImportData = data;
+      showImportPreview(data);
+    } catch(err) {
+      showToast('파일을 읽을 수 없습니다: ' + err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function showImportPreview(data) {
+  const el = document.getElementById('importPreviewContent');
+  let html = `<div style="font-size:14px;margin-bottom:8px;"><b>${data.year}년 ${String(data.month).padStart(2,'0')}월</b> 운행일지</div>`;
+  html += `<div style="font-size:12px;color:var(--text-sub);margin-bottom:12px;">내보낸 시간: ${new Date(data.exportedAt).toLocaleString('ko-KR')}</div>`;
+
+  const vehs = getDefaultVehicles();
+  if (data.logbook) {
+    html += '<table style="width:100%;font-size:13px;border-collapse:collapse;">';
+    html += '<tr style="background:#e8effd;"><th style="padding:8px;text-align:left;">차량</th><th style="padding:8px;text-align:right;">기록 수</th><th style="padding:8px;text-align:right;">총 주행거리</th></tr>';
+    let totalRows = 0, totalDist = 0;
+    Object.entries(data.logbook).forEach(([vid, rows]) => {
+      const v = vehs.find(vh => vh.id === vid);
+      const dist = rows.reduce((s, r) => s + (Number(r.distance) || 0), 0);
+      totalRows += rows.length;
+      totalDist += dist;
+      html += `<tr><td style="padding:6px 8px;">${v ? v.complex : vid} ${v ? '(' + v.driver + ')' : ''}</td>`;
+      html += `<td style="padding:6px 8px;text-align:right;">${rows.length}건</td>`;
+      html += `<td style="padding:6px 8px;text-align:right;">${dist.toLocaleString()} km</td></tr>`;
+    });
+    html += `<tr style="font-weight:700;border-top:2px solid var(--primary);"><td style="padding:8px;">합계</td><td style="padding:8px;text-align:right;">${totalRows}건</td><td style="padding:8px;text-align:right;">${totalDist.toLocaleString()} km</td></tr>`;
+    html += '</table>';
+  }
+  if (data.fuel && data.fuel.length > 0) {
+    html += `<div style="margin-top:12px;font-size:13px;"><b>주유 내역:</b> ${data.fuel.length}건</div>`;
+  }
+
+  el.innerHTML = html;
+  document.getElementById('importPreview').style.display = 'block';
+  document.getElementById('importResult').style.display = 'none';
+}
+
+function confirmImportLogbook() {
+  if (!pendingImportData) return;
+  const data = pendingImportData;
+
+  // 해당 월로 이동
+  currentYear = data.year;
+  currentMonth = data.month;
+  buildSelectors();
+
+  let d = getData();
+  if (!d) {
+    d = getDefaultData();
+  }
+
+  // 운행일지 덮어쓰기
+  if (!d.logbook) d.logbook = {};
+  Object.entries(data.logbook).forEach(([vid, rows]) => {
+    d.logbook[vid] = rows;
+  });
+
+  // 주유 내역 병합 (기존 수동 입력 + 가져온 데이터)
+  if (data.fuel && data.fuel.length > 0) {
+    if (!d.fuel) d.fuel = [];
+    // 가져온 차량의 기존 주유 데이터 제거 후 새로 추가
+    const importedVehicles = new Set(data.fuel.map(f => String(f.vehicle)));
+    d.fuel = d.fuel.filter(f => !importedVehicles.has(String(f.vehicle)));
+    data.fuel.forEach(f => {
+      d.fuel.push({
+        date: f.date,
+        vehicle: f.vehicle,
+        amount: f.amount,
+        cost: f.cost,
+        unitPrice: f.unitPrice || ''
+      });
+    });
+    // 날짜순 정렬
+    d.fuel.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  }
+
+  setData(d);
+  updateMonthList();
+  renderAll();
+
+  document.getElementById('importPreview').style.display = 'none';
+  const resultEl = document.getElementById('importResult');
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = `<div style="background:#d1fae5;border-radius:10px;padding:16px;color:#065f46;">
+    <b>&#9989; 가져오기 완료!</b><br>
+    <span style="font-size:13px;">${data.year}년 ${data.month}월 운행일지가 반영되었습니다.<br>
+    대시보드와 청구서에서 확인하세요.</span>
+  </div>`;
+
+  pendingImportData = null;
+  showToast('운행일지를 성공적으로 가져왔습니다!');
+}
+
+function cancelImportLogbook() {
+  pendingImportData = null;
+  document.getElementById('importPreview').style.display = 'none';
+}
+
+init();
+</script>
+</body>
+</html>

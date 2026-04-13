@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>운행일지 앱 설치 방법</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'맑은 고딕',sans-serif;background:#f5f7fa;color:#1f2937;padding:20px;max-width:700px;margin:0 auto;line-height:1.8}
+h1{font-size:22px;color:#1a73e8;margin-bottom:8px}
+h2{font-size:17px;margin-top:28px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #e5e7eb}
+h3{font-size:14px;margin-top:16px;color:#1a73e8}
+p,li{font-size:14px}
+.card{background:#fff;border-radius:12px;padding:20px;margin:16px 0;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.step{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.num{width:28px;height:28px;border-radius:50%;background:#1a73e8;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;margin-top:2px}
+.highlight{background:#e8f0fe;border-left:3px solid #1a73e8;padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px}
+.warn{background:#fef3c7;border-left:3px solid #d97706;padding:10px 14px;border-radius:6px;margin:12px 0;font-size:13px}
+code{background:#f3f4f6;padding:2px 6px;border-radius:4px;font-size:13px}
+a{color:#1a73e8}
+</style>
+</head>
+<body>
+
+<h1>&#128652; 운행일지 앱 설치 방법</h1>
+<p style="color:#6b7280">검암역 로열파크씨티 푸르지오 셔틀버스 기사용</p>
+
+<h2>방법 1: 가장 쉬운 방법 (추천)</h2>
+<div class="card">
+  <h3>Android (삼성, LG 등)</h3>
+  <div class="step"><div class="num">1</div><div>Chrome 브라우저로 운행일지 앱 주소에 접속합니다</div></div>
+  <div class="step"><div class="num">2</div><div>화면 하단에 <b>"홈 화면에 추가"</b> 또는 <b>"앱 설치"</b> 배너가 나타납니다</div></div>
+  <div class="step"><div class="num">3</div><div><b>"설치"</b> 버튼을 누르면 홈 화면에 "운행일지" 앱 아이콘이 생깁니다</div></div>
+  <div class="step"><div class="num">4</div><div>홈 화면의 아이콘을 눌러 앱처럼 사용합니다</div></div>
+  <div class="highlight">
+    배너가 안 나타나면: Chrome 메뉴(&#8942;) → <b>"홈 화면에 추가"</b> 또는 <b>"앱 설치"</b>
+  </div>
+</div>
+
+<div class="card">
+  <h3>iPhone (아이폰)</h3>
+  <div class="step"><div class="num">1</div><div><b>Safari</b> 브라우저로 운행일지 앱 주소에 접속합니다 (반드시 Safari)</div></div>
+  <div class="step"><div class="num">2</div><div>하단의 <b>공유 버튼</b> (&#9654; 네모에서 화살표 나오는 아이콘)을 누릅니다</div></div>
+  <div class="step"><div class="num">3</div><div><b>"홈 화면에 추가"</b>를 선택합니다</div></div>
+  <div class="step"><div class="num">4</div><div>이름을 "운행일지"로 확인 후 <b>"추가"</b>를 누릅니다</div></div>
+</div>
+
+<h2>방법 2: APK 파일로 설치 (Android 전용)</h2>
+<div class="card">
+  <p>앱을 웹서버에 올린 후 <a href="https://www.pwabuilder.com" target="_blank">PWABuilder.com</a>에서 APK로 변환할 수 있습니다.</p>
+  <div class="step"><div class="num">1</div><div>운행일지 파일들을 웹서버에 업로드합니다 (GitHub Pages 추천)</div></div>
+  <div class="step"><div class="num">2</div><div><a href="https://www.pwabuilder.com" target="_blank">PWABuilder.com</a> 접속 → 앱 주소 입력</div></div>
+  <div class="step"><div class="num">3</div><div>"Android" 선택 → "Generate" 클릭</div></div>
+  <div class="step"><div class="num">4</div><div>APK 파일 다운로드 → 스마트폰에 전송 → 설치</div></div>
+  <div class="warn">
+    APK 설치 시 "알 수 없는 앱 설치 허용"을 해야 합니다.<br>
+    설정 → 보안 → 알 수 없는 소스 허용
+  </div>
+</div>
+
+<h2>방법 3: GitHub Pages로 무료 배포</h2>
+<div class="card">
+  <div class="step"><div class="num">1</div><div><a href="https://github.com" target="_blank">GitHub.com</a>에 가입 (무료)</div></div>
+  <div class="step"><div class="num">2</div><div>새 저장소(Repository) 생성: 예) <code>shuttle-log</code></div></div>
+  <div class="step"><div class="num">3</div><div>운행일지앱 폴더의 파일 5개를 모두 업로드:<br>
+    <code>index.html</code>, <code>manifest.json</code>, <code>sw.js</code>, <code>icon-192.png</code>, <code>icon-512.png</code></div></div>
+  <div class="step"><div class="num">4</div><div>Settings → Pages → Source를 "main" 브랜치로 선택 → Save</div></div>
+  <div class="step"><div class="num">5</div><div>몇 분 후 <code>https://사용자이름.github.io/shuttle-log/</code> 주소로 접속 가능</div></div>
+  <div class="highlight">
+    이 주소를 기사분들에게 공유하면 각자 스마트폰에서 "홈 화면에 추가"로 앱 설치 가능!<br>
+    HTTPS로 제공되므로 PWA 설치 기능이 완벽히 작동합니다.
+  </div>
+</div>
+
+<h2>필요한 파일 목록</h2>
+<div class="card">
+  <ul style="list-style:none;padding:0">
+    <li style="padding:6px 0;border-bottom:1px solid #e5e7eb">&#128196; <b>index.html</b> - 앱 본체 (25KB)</li>
+    <li style="padding:6px 0;border-bottom:1px solid #e5e7eb">&#128196; <b>manifest.json</b> - 앱 설정 정보</li>
+    <li style="padding:6px 0;border-bottom:1px solid #e5e7eb">&#128196; <b>sw.js</b> - 오프라인 지원 (Service Worker)</li>
+    <li style="padding:6px 0;border-bottom:1px solid #e5e7eb">&#127912; <b>icon-192.png</b> - 앱 아이콘 (작은)</li>
+    <li style="padding:6px 0">&#127912; <b>icon-512.png</b> - 앱 아이콘 (큰)</li>
+  </ul>
+</div>
+
+<div class="warn">
+  <b>중요:</b> 데이터는 각 기사님의 스마트폰에만 저장됩니다.<br>
+  앱을 삭제하거나 브라우저 데이터를 지우면 기록이 사라집니다.<br>
+  정기적으로 "관리 → 내보내기"로 CSV 백업을 권장합니다.
+</div>
+
+</body>
+</html>

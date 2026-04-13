@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>검암역 로열파크씨티 셔틀 운행일지</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --primary: #1a73e8;
+  --primary-dark: #1557b0;
+  --bg: #f5f7fa;
+  --card: #fff;
+  --text: #1f2937;
+  --text-light: #6b7280;
+  --border: #e5e7eb;
+  --success: #059669;
+  --danger: #dc2626;
+  --warning: #d97706;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', '맑은 고딕', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: #fff;
+  padding: 16px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.header h1 { font-size: 16px; font-weight: 600; }
+.header .subtitle { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+
+/* Tab Navigation */
+.tab-nav {
+  display: flex;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 56px;
+  z-index: 99;
+}
+.tab-nav button {
+  flex: 1;
+  padding: 12px 8px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-light);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.tab-nav button.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  background: #e8f0fe;
+}
+
+/* Pages */
+.page { display: none; padding: 16px; }
+.page.active { display: block; }
+
+/* Cards */
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Form */
+.form-group { margin-bottom: 14px; }
+.form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-light);
+  margin-bottom: 5px;
+}
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 15px;
+  background: #fafbfc;
+  color: var(--text);
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: #fff;
+}
+.form-group input[readonly] {
+  background: #e8f0fe;
+  color: var(--primary);
+  font-weight: 600;
+}
+.form-group textarea { resize: vertical; min-height: 60px; }
+
+/* AM/PM Toggle */
+.time-toggle {
+  display: flex;
+  gap: 8px;
+}
+.time-toggle button {
+  flex: 1;
+  padding: 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #fafbfc;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.time-toggle button.selected {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+/* Row layout */
+.form-row {
+  display: flex;
+  gap: 10px;
+}
+.form-row .form-group { flex: 1; }
+
+/* Buttons */
+.btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+.btn-primary:active { background: var(--primary-dark); }
+.btn-success {
+  background: var(--success);
+  color: #fff;
+}
+.btn-danger {
+  background: #fff;
+  color: var(--danger);
+  border: 1.5px solid var(--danger);
+}
+.btn-outline {
+  background: #fff;
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Driver select card */
+.driver-card {
+  display: flex;
+  align-items: center;
+  padding: 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #fff;
+}
+.driver-card.selected {
+  border-color: var(--primary);
+  background: #e8f0fe;
+}
+.driver-card .icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+.driver-card .info { flex: 1; }
+.driver-card .info .name { font-weight: 600; font-size: 15px; }
+.driver-card .info .detail { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+.driver-card .check {
+  width: 22px; height: 22px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.driver-card.selected .check {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+/* History list */
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  background: #fff;
+  font-size: 13px;
+}
+.history-item .left { flex: 1; }
+.history-item .date { font-weight: 600; }
+.history-item .meta { color: var(--text-light); font-size: 11px; margin-top: 2px; }
+.history-item .km { font-weight: 700; color: var(--primary); font-size: 14px; }
+.history-item .actions { display: flex; gap: 6px; margin-left: 8px; }
+.history-item .actions button {
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  font-size: 11px;
+  cursor: pointer;
+}
+.history-item .actions .del-btn { color: var(--danger); border-color: var(--danger); }
+
+/* Stats */
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.stat-box {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+}
+.stat-box .val { font-size: 20px; font-weight: 700; color: var(--primary); }
+.stat-box .label { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 14px;
+  z-index: 200;
+  opacity: 0;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+
+/* Month selector */
+.month-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.month-selector button {
+  width: 32px; height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.month-selector .current { font-size: 15px; font-weight: 600; min-width: 120px; text-align: center; }
+
+/* Empty state */
+.empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-light);
+}
+.empty .icon { font-size: 48px; margin-bottom: 12px; }
+.empty p { font-size: 14px; }
+
+/* Export section */
+.export-btns { display: flex; flex-direction: column; gap: 8px; }
+
+/* Fuel indicator */
+.fuel-badge {
+  display: inline-block;
+  background: #fef3c7;
+  color: var(--warning);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 4px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>검암역 로열파크씨티 푸르지오</h1>
+  <div class="subtitle">셔틀버스 운행일지</div>
+</div>
+
+<div class="tab-nav">
+  <button class="active" onclick="showPage('input')">입력</button>
+  <button onclick="showPage('history')">기록</button>
+  <button onclick="showPage('stats')">통계</button>
+  <button onclick="showPage('export')">내보내기</button>
+</div>
+
+<!-- 로그인 화면 -->
+<div id="driverSelect" class="page active">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 120px);padding:20px;">
+    <div style="font-size:56px;margin-bottom:12px;">&#128652;</div>
+    <div style="font-size:18px;font-weight:700;margin-bottom:4px;">운행일지</div>
+    <div style="font-size:12px;color:var(--text-light);margin-bottom:28px;">검암역 로열파크씨티 푸르지오 셔틀버스</div>
+
+    <div class="card" style="width:100%;max-width:360px;">
+      <div class="card-title">&#128100; 로그인</div>
+
+      <div class="form-group">
+        <label>기사 이름</label>
+        <select id="loginName" onchange="onLoginNameChange()">
+          <option value="">-- 이름을 선택하세요 --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>호차</label>
+        <select id="loginUnit" onchange="onLoginUnitChange()">
+          <option value="">-- 호차를 선택하세요 --</option>
+        </select>
+      </div>
+
+      <div id="loginPreview" style="display:none;background:#f0f7ff;border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px;line-height:1.7;"></div>
+
+      <button class="btn btn-primary" id="loginBtn" onclick="doLogin()" disabled style="margin-top:4px;">로그인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 입력 페이지 -->
+<div id="inputPage" class="page">
+  <div class="card" id="driverInfo" style="display:flex;align-items:center;gap:12px;">
+    <div class="icon" style="width:36px;height:36px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;" id="driverIcon"></div>
+    <div style="flex:1">
+      <div style="font-weight:600;font-size:14px;" id="driverNameDisplay"></div>
+      <div style="font-size:11px;color:var(--text-light);" id="driverDetailDisplay"></div>
+    </div>
+    <button onclick="changeDriver()" style="padding:6px 12px;border:1px solid var(--danger);border-radius:6px;background:#fff;font-size:12px;cursor:pointer;color:var(--danger);">로그아웃</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">운행 정보 입력</div>
+    <div class="form-group">
+      <label>운행 일자</label>
+      <input type="date" id="tripDate">
+    </div>
+    <div class="form-group">
+      <label>오전 / 오후</label>
+      <div class="time-toggle">
+        <button id="amBtn" class="selected" onclick="selectTime('am')">오전 (AM)</button>
+        <button id="pmBtn" onclick="selectTime('pm')">오후 (PM)</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>출발 계기 (km)</label>
+        <input type="number" id="startKm" placeholder="예: 56643" inputmode="numeric">
+      </div>
+      <div class="form-group">
+        <label>종료 계기 (km)</label>
+        <input type="number" id="endKm" placeholder="예: 56693" inputmode="numeric">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>주행 거리 (km) - 자동 계산</label>
+      <input type="text" id="distance" readonly placeholder="자동 계산됩니다">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">주유 정보 (해당 시에만)</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>유류 주입량 (ℓ)</label>
+        <input type="number" id="fuelAmount" placeholder="미입력 가능" inputmode="decimal" step="0.001">
+      </div>
+      <div class="form-group">
+        <label>주입 금액 (원)</label>
+        <input type="number" id="fuelCost" placeholder="미입력 가능" inputmode="numeric">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>단가 (원/ℓ) - 자동 계산</label>
+      <input type="text" id="unitPrice" readonly placeholder="자동 계산됩니다">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="form-group" style="margin-bottom:0">
+      <label>비고</label>
+      <textarea id="memo" placeholder="특이사항 입력 (고속주행, 정비 등)"></textarea>
+    </div>
+  </div>
+
+  <button class="btn btn-primary" onclick="saveEntry()" style="margin-top:4px;">저장하기</button>
+</div>
+
+<!-- 기록 페이지 -->
+<div id="historyPage" class="page">
+  <div class="month-selector">
+    <button onclick="changeMonth(-1)">&lt;</button>
+    <span class="current" id="historyMonth"></span>
+    <button onclick="changeMonth(1)">&gt;</button>
+  </div>
+  <div id="historyList"></div>
+</div>
+
+<!-- 통계 페이지 -->
+<div id="statsPage" class="page">
+  <div class="month-selector">
+    <button onclick="changeStatMonth(-1)">&lt;</button>
+    <span class="current" id="statsMonth"></span>
+    <button onclick="changeStatMonth(1)">&gt;</button>
+  </div>
+  <div class="card">
+    <div class="card-title">이번 달 운행 요약</div>
+    <div class="stat-grid" id="statsGrid"></div>
+  </div>
+  <div class="card" id="fuelHistory">
+    <div class="card-title">주유 내역</div>
+    <div id="fuelList"></div>
+  </div>
+</div>
+
+<!-- 내보내기 페이지 -->
+<div id="exportPage" class="page">
+  <div class="card" style="border-left:4px solid var(--success);">
+    <div class="card-title">&#128260; 청구서 앱 연동</div>
+    <p style="font-size:13px;color:var(--text-light);margin-bottom:12px;">
+      이번 달 <b>전체 기사</b>의 운행일지를 청구서 앱으로 내보냅니다.
+    </p>
+    <div id="syncPreview" style="background:#f0f7ff;border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--text);line-height:1.8;"></div>
+    <button class="btn btn-primary" onclick="exportForBilling()" style="margin-bottom:8px;">&#128260; 청구서 앱용 파일 내보내기</button>
+    <p style="font-size:11px;color:var(--text-light);">다운로드된 JSON 파일을 청구서 앱의 <b>"운행일지 가져오기"</b> 버튼으로 불러오세요.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">CSV 내보내기 (내 기록만)</div>
+    <div class="export-btns">
+      <button class="btn btn-outline" onclick="exportCSV('current')">이번 달 CSV</button>
+      <button class="btn btn-outline" onclick="exportCSV('all')">전체 CSV</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">데이터 관리</div>
+    <button class="btn btn-danger" onclick="clearData()" style="margin-top:8px;">전체 데이터 삭제</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// 차량/기사 정보 - 청구서앱에서 동기화, 없으면 기본값 사용
+const DEFAULT_DRIVERS = [
+  { id:'1-1', unit:'1단지 1호차', plate:'704오7315', name:'송진희', year:'2023년식' },
+  { id:'1-2', unit:'1단지 2호차', plate:'704오7327', name:'함동남', year:'2023년식' },
+  { id:'1-3', unit:'1단지 3호차', plate:'704오7399', name:'김영대', year:'2020년식' },
+  { id:'2-1', unit:'2단지 1호차', plate:'704오7336', name:'김동복', year:'2023년식' },
+  { id:'2-2', unit:'2단지 2호차', plate:'70부5578',  name:'채재영', year:'2023년식' },
+  { id:'2-3', unit:'2단지 3호차', plate:'704오7376', name:'강희선', year:'2023년식' },
+];
+
+// 청구서앱 → 운행일지앱 차량 매핑 (청구서 id → 운행일지 id, plate)
+const BILLING_MAP = {
+  '7315': { logId:'1-1', plate:'704오7315' },
+  '7327': { logId:'1-2', plate:'704오7327' },
+  '7399': { logId:'1-3', plate:'704오7399' },
+  '7336': { logId:'2-1', plate:'704오7336' },
+  '5578': { logId:'2-2', plate:'70부5578' },
+  '7376': { logId:'2-3', plate:'704오7376' },
+};
+
+function loadDrivers() {
+  try {
+    const raw = localStorage.getItem('rpc_shared_vehicles');
+    if (!raw) return DEFAULT_DRIVERS;
+    const vehs = JSON.parse(raw);
+    if (!Array.isArray(vehs) || vehs.length === 0) return DEFAULT_DRIVERS;
+
+    return vehs.map(v => {
+      const map = BILLING_MAP[v.id];
+      if (!map) return null;
+      // complex 형식 변환: "2단지1호" → "2단지 1호차"
+      let unit = v.complex || '';
+      unit = unit.replace(/(\d단지)(\d호)/, '$1 $2차');
+      return {
+        id: map.logId,
+        unit: unit,
+        plate: map.plate,
+        name: v.driver || '',
+        year: v.year ? v.year + '년식' : ''
+      };
+    }).filter(Boolean);
+  } catch(e) {
+    return DEFAULT_DRIVERS;
+  }
+}
+
+const DRIVERS = loadDrivers();
+
+let selectedDriver = null;
+let currentTime = 'am';
+let historyDate = new Date();
+let statsDate = new Date();
+
+// 초기화
+function init() {
+  renderLoginForm();
+}
+
+function renderLoginForm() {
+  // 이름 드롭다운 채우기 (중복 제거)
+  const nameSelect = document.getElementById('loginName');
+  const names = [...new Set(DRIVERS.map(d => d.name))];
+  nameSelect.innerHTML = '<option value="">-- 이름을 선택하세요 --</option>' +
+    names.map(n => `<option value="${n}">${n}</option>`).join('');
+
+  // 호차 드롭다운 채우기 (전체 호차)
+  const unitSelect = document.getElementById('loginUnit');
+  unitSelect.innerHTML = '<option value="">-- 호차를 선택하세요 --</option>' +
+    DRIVERS.map(d => `<option value="${d.id}">${d.unit} (${d.plate})</option>`).join('');
+}
+
+function onLoginNameChange() {
+  const name = document.getElementById('loginName').value;
+  const unitSelect = document.getElementById('loginUnit');
+
+  if (name) {
+    // 이름에 해당하는 호차가 1개면 자동 선택
+    const matches = DRIVERS.filter(d => d.name === name);
+    if (matches.length === 1) {
+      unitSelect.value = matches[0].id;
+    }
+  }
+  updateLoginPreview();
+}
+
+function onLoginUnitChange() {
+  const id = document.getElementById('loginUnit').value;
+  const nameSelect = document.getElementById('loginName');
+
+  if (id) {
+    // 호차 선택 시 해당 기사 이름 자동 선택
+    const d = DRIVERS.find(x => x.id === id);
+    if (d) nameSelect.value = d.name;
+  }
+  updateLoginPreview();
+}
+
+function updateLoginPreview() {
+  const name = document.getElementById('loginName').value;
+  const id = document.getElementById('loginUnit').value;
+  const preview = document.getElementById('loginPreview');
+  const btn = document.getElementById('loginBtn');
+
+  if (!name || !id) {
+    preview.style.display = 'none';
+    btn.disabled = true;
+    return;
+  }
+
+  const d = DRIVERS.find(x => x.id === id);
+  if (d) {
+    preview.style.display = 'block';
+    preview.innerHTML = `<b>${name}</b> 기사님<br>` +
+      `&#128652; ${d.unit}<br>` +
+      `&#128199; ${d.plate}<br>` +
+      `&#128197; ${d.year}`;
+    btn.disabled = false;
+  }
+}
+
+function doLogin() {
+  const name = document.getElementById('loginName').value;
+  const id = document.getElementById('loginUnit').value;
+  if (!name) { toast('이름을 선택해 주세요'); return; }
+  if (!id) { toast('호차를 선택해 주세요'); return; }
+
+  selectedDriver = DRIVERS.find(d => d.id === id);
+  showInputPage();
+  showPage('input');
+  toast(selectedDriver.name + ' 기사님 로그인 완료!');
+}
+
+function changeDriver() {
+  selectedDriver = null;
+  document.querySelectorAll('.page').forEach(p => { p.style.display = 'none'; p.classList.remove('active'); });
+  document.getElementById('driverSelect').style.display = 'block';
+  document.getElementById('driverSelect').classList.add('active');
+  renderLoginForm();
+}
+
+function showInputPage() {
+  document.getElementById('driverSelect').style.display = 'none';
+  document.getElementById('inputPage').style.display = 'block';
+  document.getElementById('driverIcon').textContent = selectedDriver.name[0];
+  document.getElementById('driverNameDisplay').textContent = selectedDriver.name + ' 기사님';
+  document.getElementById('driverDetailDisplay').textContent = selectedDriver.unit + ' | ' + selectedDriver.plate;
+
+  // 오늘 날짜 기본값
+  const today = new Date();
+  document.getElementById('tripDate').value = today.toISOString().split('T')[0];
+
+  // 마지막 종료계기 자동 입력
+  autoFillLastKm();
+}
+
+function autoFillLastKm() {
+  const entries = getEntries();
+  const driverEntries = entries
+    .filter(e => e.driverId === selectedDriver.id)
+    .sort((a,b) => {
+      if (a.date !== b.date) return a.date.localeCompare(b.date);
+      return a.time === 'pm' ? 1 : -1;
+    });
+  if (driverEntries.length > 0) {
+    const last = driverEntries[driverEntries.length - 1];
+    document.getElementById('startKm').value = last.endKm;
+  }
+}
+
+// 페이지 전환
+function showPage(page) {
+  if (!selectedDriver && page !== 'input') {
+    toast('먼저 기사님을 선택해 주세요');
+    return;
+  }
+  document.querySelectorAll('.tab-nav button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => { p.style.display = 'none'; p.classList.remove('active'); });
+
+  const tabs = document.querySelectorAll('.tab-nav button');
+  const pageMap = { input:0, history:1, stats:2, export:3 };
+  tabs[pageMap[page]].classList.add('active');
+
+  if (page === 'input') {
+    if (!selectedDriver) {
+      document.getElementById('driverSelect').style.display = 'block';
+    } else {
+      document.getElementById('inputPage').style.display = 'block';
+    }
+  } else if (page === 'history') {
+    document.getElementById('historyPage').style.display = 'block';
+    renderHistory();
+  } else if (page === 'stats') {
+    document.getElementById('statsPage').style.display = 'block';
+    renderStats();
+  } else if (page === 'export') {
+    document.getElementById('exportPage').style.display = 'block';
+    updateSyncPreview();
+  }
+}
+
+// 오전/오후 선택
+function selectTime(t) {
+  currentTime = t;
+  document.getElementById('amBtn').classList.toggle('selected', t === 'am');
+  document.getElementById('pmBtn').classList.toggle('selected', t === 'pm');
+}
+
+// 자동 계산: 주행거리
+document.getElementById('endKm').addEventListener('input', calcDistance);
+document.getElementById('startKm').addEventListener('input', calcDistance);
+function calcDistance() {
+  const s = parseFloat(document.getElementById('startKm').value);
+  const e = parseFloat(document.getElementById('endKm').value);
+  if (!isNaN(s) && !isNaN(e) && e >= s) {
+    document.getElementById('distance').value = (e - s) + ' km';
+  } else {
+    document.getElementById('distance').value = '';
+  }
+}
+
+// 자동 계산: 단가
+document.getElementById('fuelCost').addEventListener('input', calcUnitPrice);
+document.getElementById('fuelAmount').addEventListener('input', calcUnitPrice);
+function calcUnitPrice() {
+  const amt = parseFloat(document.getElementById('fuelAmount').value);
+  const cost = parseFloat(document.getElementById('fuelCost').value);
+  if (!isNaN(amt) && !isNaN(cost) && amt > 0) {
+    document.getElementById('unitPrice').value = Math.round(cost / amt) + ' 원/ℓ';
+  } else {
+    document.getElementById('unitPrice').value = '';
+  }
+}
+
+// 데이터 저장/로드
+function getEntries() {
+  return JSON.parse(localStorage.getItem('rpc_entries') || '[]');
+}
+function saveEntries(entries) {
+  localStorage.setItem('rpc_entries', JSON.stringify(entries));
+}
+
+// 저장
+function saveEntry() {
+  const date = document.getElementById('tripDate').value;
+  const startKm = parseFloat(document.getElementById('startKm').value);
+  const endKm = parseFloat(document.getElementById('endKm').value);
+
+  if (!date) { toast('날짜를 입력해 주세요'); return; }
+  if (isNaN(startKm)) { toast('출발 계기를 입력해 주세요'); return; }
+  if (isNaN(endKm)) { toast('종료 계기를 입력해 주세요'); return; }
+  if (endKm < startKm) { toast('종료 계기가 출발 계기보다 작습니다'); return; }
+
+  const fuelAmt = parseFloat(document.getElementById('fuelAmount').value) || null;
+  const fuelCost = parseFloat(document.getElementById('fuelCost').value) || null;
+  const memo = document.getElementById('memo').value.trim();
+
+  const entry = {
+    id: Date.now().toString(),
+    driverId: selectedDriver.id,
+    driverName: selectedDriver.name,
+    unit: selectedDriver.unit,
+    plate: selectedDriver.plate,
+    date: date,
+    time: currentTime,
+    startKm: startKm,
+    endKm: endKm,
+    distance: endKm - startKm,
+    fuelAmount: fuelAmt,
+    fuelCost: fuelCost,
+    unitPrice: (fuelAmt && fuelCost) ? Math.round(fuelCost / fuelAmt) : null,
+    memo: memo,
+    createdAt: new Date().toISOString()
+  };
+
+  // 중복 체크
+  const entries = getEntries();
+  const dup = entries.find(e => e.driverId === entry.driverId && e.date === entry.date && e.time === entry.time);
+  if (dup) {
+    if (!confirm(`${date} ${currentTime === 'am' ? '오전' : '오후'} 데이터가 이미 존재합니다.\n덮어쓰시겠습니까?`)) return;
+    const idx = entries.indexOf(dup);
+    entries[idx] = entry;
+  } else {
+    entries.push(entry);
+  }
+
+  saveEntries(entries);
+  toast('저장 완료!');
+
+  // 폼 리셋 (일부)
+  document.getElementById('startKm').value = endKm;
+  document.getElementById('endKm').value = '';
+  document.getElementById('distance').value = '';
+  document.getElementById('fuelAmount').value = '';
+  document.getElementById('fuelCost').value = '';
+  document.getElementById('unitPrice').value = '';
+  document.getElementById('memo').value = '';
+
+  // 오전이면 오후로 토글
+  if (currentTime === 'am') selectTime('pm');
+}
+
+// 기록 페이지
+function renderHistory() {
+  const y = historyDate.getFullYear();
+  const m = historyDate.getMonth();
+  document.getElementById('historyMonth').textContent = `${y}년 ${m+1}월`;
+
+  const entries = getEntries()
+    .filter(e => {
+      if (!selectedDriver) return false;
+      const d = new Date(e.date);
+      return e.driverId === selectedDriver.id && d.getFullYear() === y && d.getMonth() === m;
+    })
+    .sort((a,b) => {
+      if (a.date !== b.date) return a.date.localeCompare(b.date);
+      return a.time === 'am' ? -1 : 1;
+    });
+
+  if (entries.length === 0) {
+    document.getElementById('historyList').innerHTML = `
+      <div class="empty">
+        <div class="icon">&#128203;</div>
+        <p>이번 달 운행 기록이 없습니다</p>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('historyList').innerHTML = entries.map(e => {
+    const dateStr = e.date.substring(5).replace('-', '/');
+    const timeStr = e.time === 'am' ? '오전' : '오후';
+    const fuelBadge = e.fuelAmount ? `<span class="fuel-badge">주유 ${e.fuelAmount}ℓ</span>` : '';
+    return `
+      <div class="history-item">
+        <div class="left">
+          <div class="date">${dateStr} ${timeStr} ${fuelBadge}</div>
+          <div class="meta">${e.startKm} → ${e.endKm} km${e.memo ? ' | ' + e.memo : ''}</div>
+        </div>
+        <div class="km">${e.distance}km</div>
+        <div class="actions">
+          <button class="del-btn" onclick="deleteEntry('${e.id}')">삭제</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function changeMonth(delta) {
+  historyDate.setMonth(historyDate.getMonth() + delta);
+  renderHistory();
+}
+
+function deleteEntry(id) {
+  if (!confirm('이 기록을 삭제하시겠습니까?')) return;
+  const entries = getEntries().filter(e => e.id !== id);
+  saveEntries(entries);
+  renderHistory();
+  toast('삭제 완료');
+}
+
+// 통계 페이지
+function renderStats() {
+  const y = statsDate.getFullYear();
+  const m = statsDate.getMonth();
+  document.getElementById('statsMonth').textContent = `${y}년 ${m+1}월`;
+
+  const entries = getEntries().filter(e => {
+    if (!selectedDriver) return false;
+    const d = new Date(e.date);
+    return e.driverId === selectedDriver.id && d.getFullYear() === y && d.getMonth() === m;
+  });
+
+  const totalDist = entries.reduce((s, e) => s + e.distance, 0);
+  const totalFuel = entries.reduce((s, e) => s + (e.fuelAmount || 0), 0);
+  const totalFuelCost = entries.reduce((s, e) => s + (e.fuelCost || 0), 0);
+  const tripCount = entries.length;
+  const efficiency = totalFuel > 0 ? (totalDist / totalFuel).toFixed(1) : '-';
+  const avgUnitPrice = totalFuel > 0 ? Math.round(totalFuelCost / totalFuel) : '-';
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-box"><div class="val">${totalDist.toLocaleString()}</div><div class="label">총 주행거리 (km)</div></div>
+    <div class="stat-box"><div class="val">${tripCount}</div><div class="label">총 운행 횟수</div></div>
+    <div class="stat-box"><div class="val">${totalFuel > 0 ? totalFuel.toFixed(1) : '-'}</div><div class="label">총 주유량 (ℓ)</div></div>
+    <div class="stat-box"><div class="val">${totalFuelCost > 0 ? (totalFuelCost/10000).toFixed(1) + '만' : '-'}</div><div class="label">총 주유비 (원)</div></div>
+    <div class="stat-box"><div class="val">${efficiency}</div><div class="label">연비 (km/ℓ)</div></div>
+    <div class="stat-box"><div class="val">${avgUnitPrice}</div><div class="label">평균 단가 (원/ℓ)</div></div>
+  `;
+
+  // 주유 내역
+  const fuelEntries = entries.filter(e => e.fuelAmount);
+  if (fuelEntries.length === 0) {
+    document.getElementById('fuelList').innerHTML = '<p style="font-size:13px;color:var(--text-light);">주유 기록이 없습니다</p>';
+  } else {
+    document.getElementById('fuelList').innerHTML = fuelEntries.map(e => `
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">
+        <span>${e.date.substring(5).replace('-','/')} ${e.time==='am'?'오전':'오후'}</span>
+        <span>${e.fuelAmount}ℓ / ${e.fuelCost?.toLocaleString()}원 (${e.unitPrice}원/ℓ)</span>
+      </div>
+    `).join('');
+  }
+}
+
+function changeStatMonth(delta) {
+  statsDate.setMonth(statsDate.getMonth() + delta);
+  renderStats();
+}
+
+// CSV 내보내기
+function exportCSV(scope) {
+  let entries = getEntries().filter(e => e.driverId === selectedDriver?.id);
+  if (scope === 'current') {
+    const y = new Date().getFullYear();
+    const m = new Date().getMonth();
+    entries = entries.filter(e => {
+      const d = new Date(e.date);
+      return d.getFullYear() === y && d.getMonth() === m;
+    });
+  }
+  if (entries.length === 0) { toast('내보낼 데이터가 없습니다'); return; }
+
+  entries.sort((a,b) => {
+    if (a.date !== b.date) return a.date.localeCompare(b.date);
+    return a.time === 'am' ? -1 : 1;
+  });
+
+  const BOM = '\uFEFF';
+  let csv = BOM + '일자,오전/오후,출발계기(km),종료계기(km),주행거리(km),유류주입량(ℓ),주입금액(원),단가(원/ℓ),비고\n';
+  entries.forEach(e => {
+    csv += `${e.date},${e.time==='am'?'오전':'오후'},${e.startKm},${e.endKm},${e.distance},${e.fuelAmount||''},${e.fuelCost||''},${e.unitPrice||''},${e.memo||''}\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const now = new Date();
+  a.download = `운행일지_${selectedDriver.name}_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('CSV 다운로드 완료');
+}
+
+// 전체 데이터 삭제
+function clearData() {
+  if (!confirm('정말 모든 운행일지 데이터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) return;
+  if (!confirm('한번 더 확인합니다. 정말 삭제하시겠습니까?')) return;
+  localStorage.removeItem('rpc_entries');
+  toast('전체 데이터가 삭제되었습니다');
+}
+
+// 토스트 메시지
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// 청구서 앱 연동 - 내보내기
+// PLATE_MAP을 DRIVERS에서 동적 생성
+const PLATE_MAP = {};
+DRIVERS.forEach(d => {
+  const match = Object.entries(BILLING_MAP).find(([, v]) => v.logId === d.id);
+  if (match) PLATE_MAP[d.id] = match[0];
+});
+
+function exportForBilling() {
+  const entries = getEntries();
+  if (entries.length === 0) { toast('내보낼 데이터가 없습니다'); return; }
+
+  // 이번 달 기준
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  const monthEntries = entries.filter(e => {
+    const d = new Date(e.date);
+    return d.getFullYear() === y && d.getMonth() === m;
+  });
+
+  if (monthEntries.length === 0) { toast('이번 달 데이터가 없습니다'); return; }
+
+  // 청구서 앱 logbook 형식으로 변환
+  // 청구서 앱: logbook[vehicleId] = [{date, am:bool, pm:bool, startKm, endKm, distance, fuelAmount, fuelCost, note}]
+  const logbook = {};
+  monthEntries.forEach(e => {
+    const vid = PLATE_MAP[e.driverId];
+    if (!vid) return;
+    if (!logbook[vid]) logbook[vid] = [];
+    logbook[vid].push({
+      date: e.date,
+      am: e.time === 'am',
+      pm: e.time === 'pm',
+      startKm: e.startKm,
+      endKm: e.endKm,
+      distance: e.distance,
+      fuelAmount: e.fuelAmount || '',
+      fuelCost: e.fuelCost || '',
+      note: e.memo || ''
+    });
+  });
+
+  // 차량별 정렬
+  Object.keys(logbook).forEach(vid => {
+    logbook[vid].sort((a, b) => {
+      if (a.date !== b.date) return a.date.localeCompare(b.date);
+      return a.am ? -1 : 1;
+    });
+  });
+
+  // 주유 내역도 별도로 추출 (청구서 앱의 fuel 배열 형식)
+  const fuel = [];
+  monthEntries.filter(e => e.fuelAmount && e.fuelCost).forEach(e => {
+    const vid = PLATE_MAP[e.driverId];
+    if (!vid) return;
+    fuel.push({
+      date: e.date,
+      vehicle: vid,
+      amount: e.fuelAmount,
+      cost: e.fuelCost,
+      unitPrice: e.unitPrice || ''
+    });
+  });
+
+  const exportData = {
+    source: 'shuttle-logbook-app',
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    year: y,
+    month: m + 1,
+    logbook: logbook,
+    fuel: fuel
+  };
+
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `운행일지_${y}년${String(m+1).padStart(2,'0')}월_청구서연동.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('청구서 앱용 파일 다운로드 완료!');
+}
+
+// 내보내기 페이지 진입 시 미리보기
+function updateSyncPreview() {
+  const el = document.getElementById('syncPreview');
+  if (!el) return;
+  const entries = getEntries();
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth();
+  const me = entries.filter(e => {
+    const d = new Date(e.date);
+    return d.getFullYear() === y && d.getMonth() === m;
+  });
+  const drivers = {};
+  me.forEach(e => {
+    if (!drivers[e.driverName]) drivers[e.driverName] = { count: 0, dist: 0 };
+    drivers[e.driverName].count++;
+    drivers[e.driverName].dist += e.distance;
+  });
+  if (Object.keys(drivers).length === 0) {
+    el.innerHTML = '<span style="color:var(--text-light);">이번 달 데이터가 없습니다.</span>';
+    return;
+  }
+  let html = `<b>${y}년 ${m+1}월 데이터 미리보기</b><br>`;
+  Object.entries(drivers).forEach(([name, d]) => {
+    html += `&#128100; ${name}: ${d.count}건, ${d.dist.toLocaleString()}km<br>`;
+  });
+  html += `<br><b>총 ${me.length}건</b> 내보내기 준비 완료`;
+  el.innerHTML = html;
+}
+
+// 시작
+init();
+</script>
+</body>
+</html>
