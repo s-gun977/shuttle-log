@@ -172,6 +172,7 @@ tr:hover td{background:#f8fafc}
     <div class="nav-item" data-page="import-logbook"><span class="nav-icon">&#128260;</span>운행일지 가져오기</div>
     <div style="border-top:1px solid rgba(255,255,255,.1);margin:8px 0;"></div>
     <div class="nav-item" data-page="pdf-export"><span class="nav-icon">&#128438;</span>PDF 변환</div>
+    <div class="nav-item" data-page="version-history"><span class="nav-icon">&#128336;</span>버전 기록</div>
   </div>
   <div id="monthList" class="month-list"></div>
   <div class="data-actions">
@@ -408,6 +409,26 @@ tr:hover td{background:#f8fafc}
   </div>
 </div>
 
+<!-- ==================== 버전 기록 ==================== -->
+<div class="page" id="version-history">
+  <h1 style="font-size:24px;margin-bottom:20px;">버전 기록</h1>
+  <div class="card">
+    <div class="card-header">
+      <span>&#128336; 자동 저장 버전</span>
+      <span style="font-size:12px;color:var(--text-sub);font-weight:400;">입력 시 실시간 자동 저장 (월별 최대 30개)</span>
+    </div>
+    <div class="card-body">
+      <div id="versionList"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">&#128465; 버전 관리</div>
+    <div class="card-body">
+      <button class="btn btn-danger btn-sm" onclick="clearVersions()">현재 월 버전 기록 삭제</button>
+    </div>
+  </div>
+</div>
+
 </div>
 </div>
 
@@ -435,7 +456,55 @@ let allData = {};
 
 function getKey() { return `${currentYear}-${String(currentMonth).padStart(2,'0')}`; }
 function getData() { return allData[getKey()] || null; }
-function setData(d) { allData[getKey()] = d; localStorage.setItem(STORAGE_KEY, JSON.stringify(allData)); }
+function setData(d) {
+  allData[getKey()] = d;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
+  saveVersion(getKey(), d);
+}
+
+// ===== 버전 자동저장 =====
+const VERSION_KEY = 'royalpark_versions';
+const MAX_VERSIONS = 30; // 월별 최대 보관 수
+
+function saveVersion(monthKey, data) {
+  try {
+    const now = new Date();
+    const ts = now.toISOString();
+    const label = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+
+    let versions = {};
+    try { versions = JSON.parse(localStorage.getItem(VERSION_KEY) || '{}'); } catch(e) {}
+    if (!versions[monthKey]) versions[monthKey] = [];
+
+    const list = versions[monthKey];
+    // 마지막 저장과 동일하면 스킵 (1분 이내 중복 방지)
+    if (list.length > 0) {
+      const last = list[list.length - 1];
+      if (ts.slice(0,16) === last.ts.slice(0,16)) {
+        // 같은 분 안이면 덮어쓰기
+        list[list.length - 1] = { ts, label, data: JSON.parse(JSON.stringify(data)) };
+        localStorage.setItem(VERSION_KEY, JSON.stringify(versions));
+        return;
+      }
+    }
+
+    list.push({ ts, label, data: JSON.parse(JSON.stringify(data)) });
+
+    // 최대 개수 초과 시 오래된 것 삭제
+    while (list.length > MAX_VERSIONS) list.shift();
+
+    localStorage.setItem(VERSION_KEY, JSON.stringify(versions));
+  } catch(e) {
+    // localStorage 용량 초과 시 가장 오래된 버전 삭제 후 재시도
+    try {
+      let versions = JSON.parse(localStorage.getItem(VERSION_KEY) || '{}');
+      Object.keys(versions).forEach(k => {
+        if (versions[k].length > 5) versions[k] = versions[k].slice(-5);
+      });
+      localStorage.setItem(VERSION_KEY, JSON.stringify(versions));
+    } catch(e2) {}
+  }
+}
 
 function getDefaultVehicles() {
   return [
@@ -1200,6 +1269,12 @@ function calcLogDistance(i) {
     const e = Number(endEl.value) || 0;
     distEl.value = e > s ? e - s : 0;
   }
+  // 다음 행의 출발계기에 현재 종료계기 자동 입력
+  const nextStart = document.querySelector(`input[data-li="${i+1}"][data-f="startKm"]`);
+  if (nextStart && endEl && endEl.value) {
+    nextStart.value = endEl.value;
+    calcLogDistance(i + 1);
+  }
 }
 
 function collectLogRows() {
@@ -1644,6 +1719,77 @@ document.querySelector('.main').addEventListener('change', e => {
   if (e.target.matches('input, select, textarea')) autoSave();
 });
 
+// ===== VERSION UI =====
+function renderVersionList() {
+  const el = document.getElementById('versionList');
+  if (!el) return;
+  let versions = {};
+  try { versions = JSON.parse(localStorage.getItem(VERSION_KEY) || '{}'); } catch(e) {}
+  const key = getKey();
+  const list = (versions[key] || []).slice().reverse(); // 최신순
+
+  if (list.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-sub);">저장된 버전이 없습니다.<br><span style="font-size:12px;">데이터를 입력하면 자동으로 버전이 저장됩니다.</span></div>';
+    return;
+  }
+
+  let html = '<table style="width:100%;font-size:13px;border-collapse:collapse;">';
+  html += '<thead><tr><th style="padding:8px;text-align:left;">저장 시각</th><th style="padding:8px;text-align:center;">내용</th><th style="padding:8px;text-align:right;">작업</th></tr></thead><tbody>';
+
+  list.forEach((v, idx) => {
+    const realIdx = list.length - 1 - idx; // 원래 배열 인덱스
+    const d = v.data;
+    const logCount = d.logbook ? Object.values(d.logbook).reduce((s,arr) => s + (arr?arr.length:0), 0) : 0;
+    const fuelCount = d.fuel ? d.fuel.length : 0;
+    const summary = [];
+    if (logCount) summary.push(`운행 ${logCount}건`);
+    if (fuelCount) summary.push(`주유 ${fuelCount}건`);
+    if (d.wash && d.wash.length) summary.push(`세차 ${d.wash.length}건`);
+    const isCurrent = idx === 0;
+
+    html += `<tr style="border-bottom:1px solid var(--border);${isCurrent ? 'background:#f0f7ff;' : ''}">
+      <td style="padding:8px;">
+        <div style="font-weight:${isCurrent?'700':'500'}">${v.label}</div>
+        ${isCurrent ? '<span class="tag tag-blue" style="margin-top:2px;">최신</span>' : ''}
+      </td>
+      <td style="padding:8px;text-align:center;font-size:12px;color:var(--text-sub);">${summary.join(', ') || '-'}</td>
+      <td style="padding:8px;text-align:right;">
+        ${isCurrent ? '<span style="font-size:12px;color:var(--text-sub);">현재</span>' :
+          `<button class="btn btn-sm btn-primary" onclick="restoreVersion(${realIdx})">복원</button>`}
+      </td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function restoreVersion(idx) {
+  let versions = {};
+  try { versions = JSON.parse(localStorage.getItem(VERSION_KEY) || '{}'); } catch(e) {}
+  const key = getKey();
+  const list = versions[key] || [];
+  if (!list[idx]) { showToast('버전을 찾을 수 없습니다.', 'error'); return; }
+
+  const v = list[idx];
+  if (!confirm(`${v.label} 버전으로 복원하시겠습니까?\n현재 데이터가 이 버전으로 교체됩니다.`)) return;
+
+  allData[key] = JSON.parse(JSON.stringify(v.data));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
+  renderAll();
+  renderVersionList();
+  showToast(`${v.label} 버전으로 복원되었습니다.`);
+}
+
+function clearVersions() {
+  if (!confirm(`${getKey()} 월의 버전 기록을 모두 삭제하시겠습니까?`)) return;
+  let versions = {};
+  try { versions = JSON.parse(localStorage.getItem(VERSION_KEY) || '{}'); } catch(e) {}
+  delete versions[getKey()];
+  localStorage.setItem(VERSION_KEY, JSON.stringify(versions));
+  renderVersionList();
+  showToast('버전 기록이 삭제되었습니다.');
+}
+
 // ===== NAV =====
 document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => {
@@ -1651,6 +1797,7 @@ document.querySelectorAll('.nav-item').forEach(item => {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     item.classList.add('active');
     document.getElementById(item.dataset.page).classList.add('active');
+    if (item.dataset.page === 'version-history') renderVersionList();
     document.querySelector('.sidebar').classList.remove('open');
   });
 });
