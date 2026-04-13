@@ -6,6 +6,17 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>검암역 로열파크씨티 셔틀 운행일지</title>
+<script>
+// 기존 Service Worker 해제 + 캐시만 삭제 (localStorage 데이터는 보존)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(r => r.unregister());
+  });
+  if ('caches' in window) {
+    caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+  }
+}
+</script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 :root {
