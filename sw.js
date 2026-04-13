@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rpc-shuttle-v2';
+const CACHE_NAME = 'rpc-shuttle-v3';
 const ASSETS = [
   './',
   './index.html',

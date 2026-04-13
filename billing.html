@@ -552,18 +552,18 @@ function init() {
   // 3월 샘플 데이터 preload (기존 데이터가 없을 때만)
   preloadMarch2026();
 
-  // 기존 주유액 1원 단위 절삭 마이그레이션
-  let migrated = false;
+  // 기존 주유액 1원 단위 절삭 마이그레이션 (모든 월 대상)
   Object.keys(allData).forEach(k => {
     const d = allData[k];
     if (d && d.fuel) {
       d.fuel.forEach(r => {
-        const recalc = Math.floor((Number(r.unitPrice)||0) * (Number(r.amount)||0));
-        if (recalc > 0 && r.cost !== recalc) { r.cost = recalc; migrated = true; }
+        const p = Number(r.unitPrice) || 0;
+        const a = Number(r.amount) || 0;
+        if (p > 0 && a > 0) r.cost = Math.floor(p * a);
       });
     }
   });
-  if (migrated) localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(allData));
 
   const now = new Date();
   currentYear = now.getFullYear();
