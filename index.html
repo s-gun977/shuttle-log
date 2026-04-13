@@ -6,17 +6,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>검암역 로열파크씨티 셔틀 운행일지</title>
-<script>
-// 기존 Service Worker 해제 + 캐시만 삭제 (localStorage 데이터는 보존)
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(r => r.unregister());
-  });
-  if ('caches' in window) {
-    caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-  }
-}
-</script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 :root {
@@ -542,28 +531,46 @@ const BILLING_MAP = {
 
 function loadDrivers() {
   try {
-    const raw = localStorage.getItem('rpc_shared_vehicles');
-    if (!raw) return DEFAULT_DRIVERS;
-    const vehs = JSON.parse(raw);
-    if (!Array.isArray(vehs) || vehs.length === 0) return DEFAULT_DRIVERS;
+    // 1차: 청구서앱 메인 데이터에서 최신 월의 기본정보 읽기
+    const billingRaw = localStorage.getItem('royalpark_billing');
+    if (billingRaw) {
+      const allData = JSON.parse(billingRaw);
+      const keys = Object.keys(allData).sort();
+      if (keys.length > 0) {
+        const latest = allData[keys[keys.length - 1]];
+        const vehs = latest && latest.basic && latest.basic.vehicles;
+        if (vehs && vehs.length > 0) {
+          return convertVehicles(vehs);
+        }
+      }
+    }
+    // 2차: 공유 키에서 읽기
+    const sharedRaw = localStorage.getItem('rpc_shared_vehicles');
+    if (sharedRaw) {
+      const vehs = JSON.parse(sharedRaw);
+      if (Array.isArray(vehs) && vehs.length > 0) {
+        return convertVehicles(vehs);
+      }
+    }
+  } catch(e) {}
+  return DEFAULT_DRIVERS;
+}
 
-    return vehs.map(v => {
-      const map = BILLING_MAP[v.id];
-      if (!map) return null;
-      // complex 형식 변환: "2단지1호" → "2단지 1호차"
-      let unit = v.complex || '';
-      unit = unit.replace(/(\d단지)(\d호)/, '$1 $2차');
-      return {
-        id: map.logId,
-        unit: unit,
-        plate: map.plate,
-        name: v.driver || '',
-        year: v.year ? v.year + '년식' : ''
-      };
-    }).filter(Boolean);
-  } catch(e) {
-    return DEFAULT_DRIVERS;
-  }
+function convertVehicles(vehs) {
+  const result = vehs.map(v => {
+    const map = BILLING_MAP[v.id];
+    if (!map) return null;
+    let unit = v.complex || '';
+    unit = unit.replace(/(\d단지)(\d호)/, '$1 $2차');
+    return {
+      id: map.logId,
+      unit: unit,
+      plate: map.plate,
+      name: v.driver || '',
+      year: v.year ? v.year + '년식' : ''
+    };
+  }).filter(Boolean);
+  return result.length > 0 ? result : DEFAULT_DRIVERS;
 }
 
 const DRIVERS = loadDrivers();
