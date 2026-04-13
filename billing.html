@@ -656,6 +656,14 @@ function showToast(msg, type='success') {
 // ===== RENDER ALL =====
 function renderAll() {
   const d = getData();
+  // 주유액 1의 자리 버림 (10원 단위 내림) 항상 적용
+  if (d && d.fuel) {
+    d.fuel.forEach(r => {
+      const p = Number(r.unitPrice) || 0;
+      const a = Number(r.amount) || 0;
+      if (p > 0 && a > 0) r.cost = Math.floor(p * a / 10) * 10;
+    });
+  }
   if (d) calcVehicleFromSources(d);
   if (d) setData(d);
   renderDashboard(d);
