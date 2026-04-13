@@ -960,7 +960,7 @@ function calcFuelCost(i) {
   if (priceEl && amtEl && costEl) {
     const price = parseMoney(priceEl.value);
     const amt = Number(amtEl.value) || 0;
-    costEl.value = fmtMoney(Math.round(price * amt));
+    costEl.value = fmtMoney(Math.floor(price * amt));
   }
 }
 
@@ -984,7 +984,7 @@ function saveFuelData() {
     const f = inp.dataset.f;
     d.fuel[i][f] = (f==='date'||f==='complex'||f==='vehicle'||f==='note') ? inp.value : parseMoney(inp.value);
   });
-  d.fuel.forEach(r => { r.cost = Math.round((Number(r.unitPrice)||0) * (Number(r.amount)||0)); });
+  d.fuel.forEach(r => { r.cost = Math.floor((Number(r.unitPrice)||0) * (Number(r.amount)||0)); });
   setData(d); renderAll();
   showToast('주유내역이 저장되었습니다');
 }
@@ -1668,7 +1668,7 @@ function saveFuelDataSilent() {
     d.fuel[i][f] = (f==='date'||f==='complex'||f==='vehicle'||f==='note') ? inp.value : parseMoney(inp.value);
   });
   // 주유액 자동계산 (단가 x 주유량)
-  d.fuel.forEach(r => { r.cost = Math.round((Number(r.unitPrice)||0) * (Number(r.amount)||0)); });
+  d.fuel.forEach(r => { r.cost = Math.floor((Number(r.unitPrice)||0) * (Number(r.amount)||0)); });
   setData(d); refreshViews(d);
 }
 
