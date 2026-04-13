@@ -531,7 +531,13 @@ const BILLING_MAP = {
 
 function loadDrivers() {
   try {
-    // 1차: 청구서앱 메인 데이터에서 최신 월의 기본정보 읽기
+    // 1차: 서버에서 받아온 최신 데이터 (vehicles.json)
+    const remoteRaw = localStorage.getItem('rpc_remote_vehicles');
+    if (remoteRaw) {
+      const vehs = JSON.parse(remoteRaw);
+      if (Array.isArray(vehs) && vehs.length > 0) return convertVehicles(vehs);
+    }
+    // 2차: 청구서앱 메인 데이터 (같은 기기일 때)
     const billingRaw = localStorage.getItem('royalpark_billing');
     if (billingRaw) {
       const allData = JSON.parse(billingRaw);
@@ -539,18 +545,14 @@ function loadDrivers() {
       if (keys.length > 0) {
         const latest = allData[keys[keys.length - 1]];
         const vehs = latest && latest.basic && latest.basic.vehicles;
-        if (vehs && vehs.length > 0) {
-          return convertVehicles(vehs);
-        }
+        if (vehs && vehs.length > 0) return convertVehicles(vehs);
       }
     }
-    // 2차: 공유 키에서 읽기
+    // 3차: 공유 키
     const sharedRaw = localStorage.getItem('rpc_shared_vehicles');
     if (sharedRaw) {
       const vehs = JSON.parse(sharedRaw);
-      if (Array.isArray(vehs) && vehs.length > 0) {
-        return convertVehicles(vehs);
-      }
+      if (Array.isArray(vehs) && vehs.length > 0) return convertVehicles(vehs);
     }
   } catch(e) {}
   return DEFAULT_DRIVERS;
@@ -573,24 +575,23 @@ function convertVehicles(vehs) {
   return result.length > 0 ? result : DEFAULT_DRIVERS;
 }
 
-// URL 파라미터로 차량 설정 수신 (청구서앱에서 공유된 링크)
-function applyUrlConfig() {
-  try {
-    const params = new URLSearchParams(location.search);
-    const vc = params.get('vc');
-    if (vc) {
-      const vehs = JSON.parse(decodeURIComponent(vc));
+// 서버에서 vehicles.json 자동 가져오기 (백그라운드)
+function fetchRemoteVehicles() {
+  const url = './vehicles.json?t=' + Date.now();
+  fetch(url).then(r => { if (r.ok) return r.json(); throw 0; })
+    .then(vehs => {
       if (Array.isArray(vehs) && vehs.length > 0) {
-        localStorage.setItem('rpc_shared_vehicles', JSON.stringify(vehs));
-        // URL 파라미터 제거 (깔끔한 주소)
-        history.replaceState(null, '', location.pathname);
-        return true;
+        localStorage.setItem('rpc_remote_vehicles', JSON.stringify(vehs));
+        // 현재 로그인 전이면 드롭다운 갱신
+        if (!selectedDriver) {
+          DRIVERS.length = 0;
+          convertVehicles(vehs).forEach(d => DRIVERS.push(d));
+          renderLoginForm();
+        }
       }
-    }
-  } catch(e) {}
-  return false;
+    }).catch(() => {});
 }
-applyUrlConfig();
+fetchRemoteVehicles();
 
 const DRIVERS = loadDrivers();
 

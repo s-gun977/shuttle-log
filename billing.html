@@ -238,9 +238,26 @@ tr:hover td{background:#f8fafc}
       </div>
       <div class="btn-row">
         <button class="btn btn-primary" onclick="saveBasicInfo()">&#128190; 저장</button>
-        <button class="btn btn-success" onclick="generateMobileLink()">&#128241; 모바일 동기화 링크</button>
+        <button class="btn btn-success" onclick="saveAndSyncMobile()">&#128241; 저장 + 모바일 동기화</button>
       </div>
-      <div id="mobileLinkResult" style="display:none;margin-top:12px;padding:14px;background:#f0f7ff;border-radius:10px;font-size:13px;line-height:1.8;word-break:break-all;"></div>
+      <div id="mobileSyncResult" style="display:none;margin-top:12px;padding:14px;border-radius:10px;font-size:13px;line-height:1.8;"></div>
+      <div style="margin-top:12px;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid var(--border);">
+        <details>
+          <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--text-sub);">&#9881; GitHub 토큰 설정 (최초 1회)</summary>
+          <div style="margin-top:10px;">
+            <p style="font-size:12px;color:var(--text-sub);margin-bottom:8px;line-height:1.6;">
+              모바일 자동 동기화를 위해 GitHub Personal Access Token이 필요합니다.<br>
+              <a href="https://github.com/settings/tokens?type=beta" target="_blank" style="color:var(--primary);">GitHub 토큰 생성</a> →
+              Repository: <b>shuttle-log</b> → Permissions: <b>Contents (Read/Write)</b>
+            </p>
+            <div style="display:flex;gap:8px;">
+              <input type="password" id="ghToken" placeholder="github_pat_..." style="flex:1;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:13px;" value="">
+              <button class="btn btn-primary btn-sm" onclick="saveGhToken()">저장</button>
+            </div>
+            <div id="ghTokenStatus" style="margin-top:6px;font-size:12px;"></div>
+          </div>
+        </details>
+      </div>
     </div>
   </div>
 </div>
@@ -544,6 +561,80 @@ function getDefaultData() {
   };
 }
 
+// ===== GitHub 토큰 관리 =====
+function saveGhToken() {
+  const token = document.getElementById('ghToken').value.trim();
+  if (!token) { document.getElementById('ghTokenStatus').innerHTML = '<span style="color:var(--danger)">토큰을 입력하세요</span>'; return; }
+  localStorage.setItem('rpc_gh_token', token);
+  document.getElementById('ghTokenStatus').innerHTML = '<span style="color:var(--accent)">&#9989; 저장 완료</span>';
+}
+function loadGhToken() {
+  const t = localStorage.getItem('rpc_gh_token') || '';
+  const el = document.getElementById('ghToken');
+  if (el && t) { el.value = t; document.getElementById('ghTokenStatus').innerHTML = '<span style="color:var(--accent)">토큰 설정됨</span>'; }
+}
+
+// ===== 모바일 자동 동기화 (GitHub API) =====
+const GH_REPO = 's-gun977/shuttle-log';
+const GH_FILE = 'vehicles.json';
+
+async function pushVehiclesToGitHub(vehs) {
+  const token = localStorage.getItem('rpc_gh_token');
+  if (!token) return { ok:false, msg:'GitHub 토큰이 설정되지 않았습니다.' };
+
+  const content = JSON.stringify(vehs, null, 2) + '\n';
+  const encoded = btoa(unescape(encodeURIComponent(content)));
+
+  try {
+    // 기존 파일 SHA 가져오기
+    const getRes = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    let sha = '';
+    if (getRes.ok) { sha = (await getRes.json()).sha; }
+
+    // 파일 업데이트
+    const body = {
+      message: '차량 정보 동기화 (' + new Date().toLocaleString('ko-KR') + ')',
+      content: encoded
+    };
+    if (sha) body.sha = sha;
+
+    const putRes = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${GH_FILE}`, {
+      method: 'PUT',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (putRes.ok) return { ok:true, msg:'모바일 동기화 완료!' };
+    const err = await putRes.json();
+    return { ok:false, msg: err.message || '업로드 실패' };
+  } catch(e) {
+    return { ok:false, msg: '네트워크 오류: ' + e.message };
+  }
+}
+
+async function saveAndSyncMobile() {
+  saveBasicInfo();
+  const el = document.getElementById('mobileSyncResult');
+  const d = getData();
+  const vehs = d ? (d.basic?.vehicles || getDefaultVehicles()) : getDefaultVehicles();
+  const shared = vehs.map(v => ({ id:v.id, complex:v.complex, driver:v.driver, year:v.year }));
+
+  el.style.display = 'block';
+  el.style.background = '#f0f7ff';
+  el.innerHTML = '&#9203; 모바일 동기화 중...';
+
+  const result = await pushVehiclesToGitHub(shared);
+  if (result.ok) {
+    el.style.background = '#d1fae5';
+    el.innerHTML = `&#9989; <b>${result.msg}</b><br><span style="font-size:12px;color:var(--text-sub);">기사분들이 운행일지앱 접속 시 자동으로 최신 정보가 반영됩니다. (1~2분 소요)</span>`;
+  } else {
+    el.style.background = '#fef2f2';
+    el.innerHTML = `&#10060; <b>동기화 실패:</b> ${result.msg}<br><span style="font-size:12px;">GitHub 토큰 설정을 확인하세요.</span>`;
+  }
+}
+
 // ===== 운행일지앱 차량정보 동기화 =====
 function syncVehiclesToLogApp(vehs) {
   try {
@@ -617,6 +708,7 @@ function init() {
     syncVehiclesToLogApp(curData.basic.vehicles);
   }
   renderAll();
+  loadGhToken();
 }
 
 function buildSelectors() {
