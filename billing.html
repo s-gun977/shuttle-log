@@ -238,7 +238,9 @@ tr:hover td{background:#f8fafc}
       </div>
       <div class="btn-row">
         <button class="btn btn-primary" onclick="saveBasicInfo()">&#128190; 저장</button>
+        <button class="btn btn-success" onclick="generateMobileLink()">&#128241; 모바일 동기화 링크</button>
       </div>
+      <div id="mobileLinkResult" style="display:none;margin-top:12px;padding:14px;background:#f0f7ff;border-radius:10px;font-size:13px;line-height:1.8;word-break:break-all;"></div>
     </div>
   </div>
 </div>
@@ -553,6 +555,23 @@ function syncVehiclesToLogApp(vehs) {
     }));
     localStorage.setItem('rpc_shared_vehicles', JSON.stringify(shared));
   } catch(e) {}
+}
+
+function generateMobileLink() {
+  const d = getData();
+  const vehs = d ? (d.basic?.vehicles || getDefaultVehicles()) : getDefaultVehicles();
+  const shared = vehs.map(v => ({ id:v.id, complex:v.complex, driver:v.driver, year:v.year }));
+  const vc = encodeURIComponent(JSON.stringify(shared));
+  const baseUrl = location.origin + location.pathname.replace('billing.html','').replace(/\/$/,'');
+  const link = `${baseUrl}/index.html?vc=${vc}`;
+
+  const el = document.getElementById('mobileLinkResult');
+  el.style.display = 'block';
+  el.innerHTML = `<b>&#128241; 모바일 동기화 링크가 생성되었습니다</b><br><br>
+    <span style="color:var(--primary);font-weight:600;">아래 링크를 기사분들에게 공유하세요:</span><br>
+    <a href="${link}" target="_blank" style="color:var(--primary)">${link.substring(0,80)}...</a><br><br>
+    <button class="btn btn-primary btn-sm" onclick="navigator.clipboard.writeText('${link}').then(()=>showToast('링크가 복사되었습니다'))">&#128203; 링크 복사</button>
+    <span style="font-size:11px;color:var(--text-sub);margin-left:8px;">기사님이 이 링크로 접속하면 차량 정보가 자동 반영됩니다.</span>`;
 }
 
 // ===== INIT =====

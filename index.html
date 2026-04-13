@@ -573,6 +573,25 @@ function convertVehicles(vehs) {
   return result.length > 0 ? result : DEFAULT_DRIVERS;
 }
 
+// URL 파라미터로 차량 설정 수신 (청구서앱에서 공유된 링크)
+function applyUrlConfig() {
+  try {
+    const params = new URLSearchParams(location.search);
+    const vc = params.get('vc');
+    if (vc) {
+      const vehs = JSON.parse(decodeURIComponent(vc));
+      if (Array.isArray(vehs) && vehs.length > 0) {
+        localStorage.setItem('rpc_shared_vehicles', JSON.stringify(vehs));
+        // URL 파라미터 제거 (깔끔한 주소)
+        history.replaceState(null, '', location.pathname);
+        return true;
+      }
+    }
+  } catch(e) {}
+  return false;
+}
+applyUrlConfig();
+
 const DRIVERS = loadDrivers();
 
 let selectedDriver = null;
